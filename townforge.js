@@ -1,5 +1,52 @@
 // include: shell.js
 // include: minimum_runtime_check.js
+(function() {
+  // "30.0.0" -> 300000
+  function humanReadableVersionToPacked(str) {
+    str = str.split('-')[0]; // Remove any trailing part from e.g. "12.53.3-alpha"
+    var vers = str.split('.').slice(0, 3);
+    while(vers.length < 3) vers.push('00');
+    vers = vers.map((n, i, arr) => n.padStart(2, '0'));
+    return vers.join('');
+  }
+  // 300000 -> "30.0.0"
+  var packedVersionToHumanReadable = n => [n / 10000 | 0, (n / 100 | 0) % 100, n % 100].join('.');
+
+  var TARGET_NOT_SUPPORTED = 2147483647;
+
+  // Note: We use a typeof check here instead of optional chaining using
+  // globalThis because older browsers might not have globalThis defined.
+
+  // We skip the node version checking when running on Bun/Deno since the node
+  // version they report doesn't seem to be useful.
+  if (typeof process !== 'undefined' && !process.versions?.bun && typeof Deno == "undefined") {
+    var currentNodeVersion = process.versions?.node ? humanReadableVersionToPacked(process.versions.node) : TARGET_NOT_SUPPORTED;
+    if (currentNodeVersion < 180300) {
+      throw new Error(`This emscripten-generated code requires node v${ packedVersionToHumanReadable(180300) } (detected v${packedVersionToHumanReadable(currentNodeVersion)})`);
+    }
+  }
+
+  var userAgent = typeof navigator !== 'undefined' && navigator.userAgent;
+  if (!userAgent) {
+    return;
+  }
+
+  var currentSafariVersion = userAgent.includes("Safari/") && !userAgent.includes("Chrome/") && userAgent.match(/Version\/(\d+\.?\d*\.?\d*)/) ? humanReadableVersionToPacked(userAgent.match(/Version\/(\d+\.?\d*\.?\d*)/)[1]) : TARGET_NOT_SUPPORTED;
+  if (currentSafariVersion < 150000) {
+    throw new Error(`This emscripten-generated code requires Safari v${ packedVersionToHumanReadable(150000) } (detected v${currentSafariVersion})`);
+  }
+
+  var currentFirefoxVersion = userAgent.match(/Firefox\/(\d+(?:\.\d+)?)/) ? parseFloat(userAgent.match(/Firefox\/(\d+(?:\.\d+)?)/)[1]) : TARGET_NOT_SUPPORTED;
+  if (currentFirefoxVersion < 79) {
+    throw new Error(`This emscripten-generated code requires Firefox v79 (detected v${currentFirefoxVersion})`);
+  }
+
+  var currentChromeVersion = userAgent.match(/Chrome\/(\d+(?:\.\d+)?)/) ? parseFloat(userAgent.match(/Chrome\/(\d+(?:\.\d+)?)/)[1]) : TARGET_NOT_SUPPORTED;
+  if (currentChromeVersion < 85) {
+    throw new Error(`This emscripten-generated code requires Chrome v85 (detected v${currentChromeVersion})`);
+  }
+})();
+
 // end include: minimum_runtime_check.js
 // The Module object: Our interface to the outside world. We import
 // and export values on it. There are various ways Module can be used:
@@ -29,7 +76,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\markr\AppData\Local\Temp\tmpw73srehp.js
+// include: C:\Users\markr\AppData\Local\Temp\tmpfz5g6oo1.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -183,11 +230,25 @@ Module['FS_createPath']("/assets", "wilderness_props", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/assets/buildings/alchemy.png", "start": 0, "end": 758}, {"filename": "/assets/buildings/bank.png", "start": 758, "end": 1605}, {"filename": "/assets/buildings/carpenter.png", "start": 1605, "end": 1996}, {"filename": "/assets/buildings/door.png", "start": 1996, "end": 3954}, {"filename": "/assets/buildings/healer.png", "start": 3954, "end": 4136}, {"filename": "/assets/buildings/provisioner.png", "start": 4136, "end": 4744}, {"filename": "/assets/buildings/smith.png", "start": 4744, "end": 5360}, {"filename": "/assets/buildings/stable.png", "start": 5360, "end": 6012}, {"filename": "/assets/buildings/tailor.png", "start": 6012, "end": 6668}, {"filename": "/assets/buildings/townhall.png", "start": 6668, "end": 7262}, {"filename": "/assets/dungeon/floor.png", "start": 7262, "end": 9622}, {"filename": "/assets/dungeon/wall.png", "start": 9622, "end": 9783}, {"filename": "/assets/dungeon_themed/bloodtusk_floor.png", "start": 9783, "end": 10353}, {"filename": "/assets/dungeon_themed/bloodtusk_wall.png", "start": 10353, "end": 11133}, {"filename": "/assets/dungeon_themed/emberveil_brazier.png", "start": 11133, "end": 11739}, {"filename": "/assets/dungeon_themed/emberveil_floor.png", "start": 11739, "end": 12858}, {"filename": "/assets/dungeon_themed/emberveil_wall.png", "start": 12858, "end": 14167}, {"filename": "/assets/dungeon_themed/hollowwarrens_floor.png", "start": 14167, "end": 14328}, {"filename": "/assets/dungeon_themed/hollowwarrens_rug.png", "start": 14328, "end": 16348}, {"filename": "/assets/dungeon_themed/hollowwarrens_torch.png", "start": 16348, "end": 16658}, {"filename": "/assets/dungeon_themed/hollowwarrens_wall.png", "start": 16658, "end": 16793}, {"filename": "/assets/dungeon_themed/sunkencrypt_floor.png", "start": 16793, "end": 17702}, {"filename": "/assets/dungeon_themed/sunkencrypt_wall.png", "start": 17702, "end": 18744}, {"filename": "/assets/dungeon_themed/sunkencrypt_water.png", "start": 18744, "end": 19161}, {"filename": "/assets/dungeon_themed/wyrmscar_floor.png", "start": 19161, "end": 20389}, {"filename": "/assets/dungeon_themed/wyrmscar_wall.png", "start": 20389, "end": 20870}, {"filename": "/assets/fonts/Nunito.ttf", "start": 20870, "end": 297802}, {"filename": "/assets/gear_icons/amulet.png", "start": 297802, "end": 301662}, {"filename": "/assets/gear_icons/gauntlet.png", "start": 301662, "end": 306519}, {"filename": "/assets/gear_icons/helmet.png", "start": 306519, "end": 315003}, {"filename": "/assets/gear_icons/shield.png", "start": 315003, "end": 326426}, {"filename": "/assets/gear_icons/shield2.png", "start": 326426, "end": 337658}, {"filename": "/assets/gear_icons/sword.png", "start": 337658, "end": 340761}, {"filename": "/assets/ground/dirt.png", "start": 340761, "end": 341223}, {"filename": "/assets/ground/foliage.png", "start": 341223, "end": 342465}, {"filename": "/assets/ground/grass.png", "start": 342465, "end": 343640}, {"filename": "/assets/hero/walk.png", "start": 343640, "end": 417013}, {"filename": "/assets/item_icons/Bardiche.bmp", "start": 417013, "end": 430227}, {"filename": "/assets/item_icons/BlackStaff.bmp", "start": 430227, "end": 453673}, {"filename": "/assets/item_icons/Bow.bmp", "start": 453673, "end": 461471}, {"filename": "/assets/item_icons/Broadsword.bmp", "start": 461471, "end": 465749}, {"filename": "/assets/item_icons/ChainTunic.bmp", "start": 465749, "end": 653807}, {"filename": "/assets/item_icons/ChainmailGloves.bmp", "start": 653807, "end": 838721}, {"filename": "/assets/item_icons/ChainmailLeggings.bmp", "start": 838721, "end": 1026779}, {"filename": "/assets/item_icons/Club.bmp", "start": 1026779, "end": 1032465}, {"filename": "/assets/item_icons/CompositeBow.bmp", "start": 1032465, "end": 1040263}, {"filename": "/assets/item_icons/Crossbow.bmp", "start": 1040263, "end": 1046125}, {"filename": "/assets/item_icons/Cutlass.bmp", "start": 1046125, "end": 1050535}, {"filename": "/assets/item_icons/GnarledStaff.bmp", "start": 1050535, "end": 1073981}, {"filename": "/assets/item_icons/Halberd.bmp", "start": 1073981, "end": 1087195}, {"filename": "/assets/item_icons/HeavyCrossbow.bmp", "start": 1087195, "end": 1093585}, {"filename": "/assets/item_icons/Katana.bmp", "start": 1093585, "end": 1098523}, {"filename": "/assets/item_icons/Kryss.bmp", "start": 1098523, "end": 1103461}, {"filename": "/assets/item_icons/LeatherGloves.bmp", "start": 1103461, "end": 1288375}, {"filename": "/assets/item_icons/LeatherLeggings.bmp", "start": 1288375, "end": 1476433}, {"filename": "/assets/item_icons/LeatherSleeves.bmp", "start": 1476433, "end": 1664491}, {"filename": "/assets/item_icons/LeatherTunic.bmp", "start": 1664491, "end": 1852549}, {"filename": "/assets/item_icons/Longsword.bmp", "start": 1852549, "end": 1857487}, {"filename": "/assets/item_icons/Mace.bmp", "start": 1857487, "end": 1864229}, {"filename": "/assets/item_icons/Maul.bmp", "start": 1864229, "end": 1871675}, {"filename": "/assets/item_icons/Pitchfork.bmp", "start": 1871675, "end": 1888669}, {"filename": "/assets/item_icons/PlateArms.bmp", "start": 1888669, "end": 2076727}, {"filename": "/assets/item_icons/PlateChest.bmp", "start": 2076727, "end": 2264785}, {"filename": "/assets/item_icons/PlateGloves.bmp", "start": 2264785, "end": 2449699}, {"filename": "/assets/item_icons/PlateLegs.bmp", "start": 2449699, "end": 2637757}, {"filename": "/assets/item_icons/PotionDamage.bmp", "start": 2637757, "end": 2645839}, {"filename": "/assets/item_icons/PotionHeal.bmp", "start": 2645839, "end": 2653921}, {"filename": "/assets/item_icons/PotionPoison.bmp", "start": 2653921, "end": 2662003}, {"filename": "/assets/item_icons/PotionStamina.bmp", "start": 2662003, "end": 2670085}, {"filename": "/assets/item_icons/Quarterstaff.bmp", "start": 2670085, "end": 2693531}, {"filename": "/assets/item_icons/RingMailLeggings.bmp", "start": 2693531, "end": 2881589}, {"filename": "/assets/item_icons/RingMailSleeves.bmp", "start": 2881589, "end": 3069647}, {"filename": "/assets/item_icons/RingMailTunic.bmp", "start": 3069647, "end": 3257705}, {"filename": "/assets/item_icons/Scimitar.bmp", "start": 3257705, "end": 3263039}, {"filename": "/assets/item_icons/ShepherdsCrook.bmp", "start": 3263039, "end": 3291429}, {"filename": "/assets/item_icons/ShortSpear.bmp", "start": 3291429, "end": 3301483}, {"filename": "/assets/item_icons/Spear.bmp", "start": 3301483, "end": 3327797}, {"filename": "/assets/item_icons/StuddedGloves.bmp", "start": 3327797, "end": 3512711}, {"filename": "/assets/item_icons/StuddedLeggings.bmp", "start": 3512711, "end": 3700769}, {"filename": "/assets/item_icons/StuddedSleeves.bmp", "start": 3700769, "end": 3888827}, {"filename": "/assets/item_icons/StuddedTunic.bmp", "start": 3888827, "end": 4076885}, {"filename": "/assets/item_icons/VikingSword.bmp", "start": 4076885, "end": 4082087}, {"filename": "/assets/item_icons/WarAxe.bmp", "start": 4082087, "end": 4087817}, {"filename": "/assets/item_icons/WarFork.bmp", "start": 4087817, "end": 4095439}, {"filename": "/assets/item_icons/WarHammer.bmp", "start": 4095439, "end": 4099849}, {"filename": "/assets/knight/attack1.png", "start": 4099849, "end": 4126593}, {"filename": "/assets/knight/attack2.png", "start": 4126593, "end": 4153313}, {"filename": "/assets/knight/defend.png", "start": 4153313, "end": 4177337}, {"filename": "/assets/knight/hurt.png", "start": 4177337, "end": 4200800}, {"filename": "/assets/knight/idle.png", "start": 4200800, "end": 4226604}, {"filename": "/assets/knight/protect.png", "start": 4226604, "end": 4248832}, {"filename": "/assets/monsters/bat.png", "start": 4248832, "end": 4249027}, {"filename": "/assets/monsters/bloodtusk.png", "start": 4249027, "end": 4249487}, {"filename": "/assets/monsters/emberveil.png", "start": 4249487, "end": 4249990}, {"filename": "/assets/monsters/ghost.png", "start": 4249990, "end": 4250179}, {"filename": "/assets/monsters/hollowwarrens.png", "start": 4250179, "end": 4250760}, {"filename": "/assets/monsters/orc.png", "start": 4250760, "end": 4250963}, {"filename": "/assets/monsters/slime.png", "start": 4250963, "end": 4251152}, {"filename": "/assets/monsters/sunkencrypt.png", "start": 4251152, "end": 4251389}, {"filename": "/assets/monsters/wyrmscar.png", "start": 4251389, "end": 4252339}, {"filename": "/assets/monsters_boss/bloodtusk.png", "start": 4252339, "end": 4253468}, {"filename": "/assets/monsters_boss/emberveil.png", "start": 4253468, "end": 4254000}, {"filename": "/assets/monsters_boss/hollowwarrens.png", "start": 4254000, "end": 4254462}, {"filename": "/assets/monsters_boss/sunkencrypt.png", "start": 4254462, "end": 4254938}, {"filename": "/assets/monsters_boss/wyrmscar.png", "start": 4254938, "end": 4255469}, {"filename": "/assets/paperdoll/arms/chainmail.png", "start": 4255469, "end": 4257800}, {"filename": "/assets/paperdoll/arms/leather.png", "start": 4257800, "end": 4260190}, {"filename": "/assets/paperdoll/arms/plate.png", "start": 4260190, "end": 4262744}, {"filename": "/assets/paperdoll/arms/ringmail.png", "start": 4262744, "end": 4264989}, {"filename": "/assets/paperdoll/arms/studded.png", "start": 4264989, "end": 4267440}, {"filename": "/assets/paperdoll/base/human_male.png", "start": 4267440, "end": 4280516}, {"filename": "/assets/paperdoll/body/chainmail.png", "start": 4280516, "end": 4287493}, {"filename": "/assets/paperdoll/body/leather_armor.png", "start": 4287493, "end": 4294276}, {"filename": "/assets/paperdoll/body/leather_stud.png", "start": 4294276, "end": 4301269}, {"filename": "/assets/paperdoll/body/plate.png", "start": 4301269, "end": 4308082}, {"filename": "/assets/paperdoll/body/ringmail.png", "start": 4308082, "end": 4314355}, {"filename": "/assets/paperdoll/boots/middle_brown.png", "start": 4314355, "end": 4317512}, {"filename": "/assets/paperdoll/brown_1.png", "start": 4317512, "end": 4319415}, {"filename": "/assets/paperdoll/gloves/gauntlet_blue.png", "start": 4319415, "end": 4322159}, {"filename": "/assets/paperdoll/gloves/glove_black.png", "start": 4322159, "end": 4324802}, {"filename": "/assets/paperdoll/gloves/glove_brown.png", "start": 4324802, "end": 4327390}, {"filename": "/assets/paperdoll/gloves/glove_gold.png", "start": 4327390, "end": 4330166}, {"filename": "/assets/paperdoll/gloves/glove_gray.png", "start": 4330166, "end": 4332607}, {"filename": "/assets/paperdoll/gorget/leather.png", "start": 4332607, "end": 4333926}, {"filename": "/assets/paperdoll/gorget/plate.png", "start": 4333926, "end": 4335429}, {"filename": "/assets/paperdoll/gorget/studded.png", "start": 4335429, "end": 4336842}, {"filename": "/assets/paperdoll/hair/brown_1.png", "start": 4336842, "end": 4338745}, {"filename": "/assets/paperdoll/hand_right/bow.png", "start": 4338745, "end": 4338917}, {"filename": "/assets/paperdoll/hand_right/bow_2.png", "start": 4338917, "end": 4339101}, {"filename": "/assets/paperdoll/hand_right/bow_3.png", "start": 4339101, "end": 4339301}, {"filename": "/assets/paperdoll/hand_right/broadsword.png", "start": 4339301, "end": 4339574}, {"filename": "/assets/paperdoll/hand_right/club.png", "start": 4339574, "end": 4339769}, {"filename": "/assets/paperdoll/hand_right/crossbow.png", "start": 4339769, "end": 4340064}, {"filename": "/assets/paperdoll/hand_right/crossbow_3.png", "start": 4340064, "end": 4340277}, {"filename": "/assets/paperdoll/hand_right/fork_2.png", "start": 4340277, "end": 4340463}, {"filename": "/assets/paperdoll/hand_right/glaive_new.png", "start": 4340463, "end": 4340685}, {"filename": "/assets/paperdoll/hand_right/great_mace.png", "start": 4340685, "end": 4340908}, {"filename": "/assets/paperdoll/hand_right/halberd_new.png", "start": 4340908, "end": 4341148}, {"filename": "/assets/paperdoll/hand_right/heavy_sword.png", "start": 4341148, "end": 4341376}, {"filename": "/assets/paperdoll/hand_right/katana.png", "start": 4341376, "end": 4341575}, {"filename": "/assets/paperdoll/hand_right/large_mace.png", "start": 4341575, "end": 4341788}, {"filename": "/assets/paperdoll/hand_right/long_sword.png", "start": 4341788, "end": 4341966}, {"filename": "/assets/paperdoll/hand_right/mace_new.png", "start": 4341966, "end": 4342156}, {"filename": "/assets/paperdoll/hand_right/pole_forked.png", "start": 4342156, "end": 4342399}, {"filename": "/assets/paperdoll/hand_right/quarterstaff.png", "start": 4342399, "end": 4342571}, {"filename": "/assets/paperdoll/hand_right/rapier.png", "start": 4342571, "end": 4342788}, {"filename": "/assets/paperdoll/hand_right/sabre.png", "start": 4342788, "end": 4342998}, {"filename": "/assets/paperdoll/hand_right/scimitar_new.png", "start": 4342998, "end": 4343251}, {"filename": "/assets/paperdoll/hand_right/spear.png", "start": 4343251, "end": 4343455}, {"filename": "/assets/paperdoll/hand_right/spear_1.png", "start": 4343455, "end": 4343621}, {"filename": "/assets/paperdoll/hand_right/staff_evil.png", "start": 4343621, "end": 4343916}, {"filename": "/assets/paperdoll/hand_right/staff_organic.png", "start": 4343916, "end": 4344223}, {"filename": "/assets/paperdoll/hand_right/staff_plain.png", "start": 4344223, "end": 4344411}, {"filename": "/assets/paperdoll/hand_right/war_axe_new.png", "start": 4344411, "end": 4344632}, {"filename": "/assets/paperdoll/head/cap_black_1.png", "start": 4344632, "end": 4344834}, {"filename": "/assets/paperdoll/head/chain.png", "start": 4344834, "end": 4346573}, {"filename": "/assets/paperdoll/head/hood_ybrown.png", "start": 4346573, "end": 4348375}, {"filename": "/assets/paperdoll/head/iron_1.png", "start": 4348375, "end": 4350065}, {"filename": "/assets/paperdoll/human_male.png", "start": 4350065, "end": 4363141}, {"filename": "/assets/paperdoll/legs/leg_armor_1.png", "start": 4363141, "end": 4366703}, {"filename": "/assets/paperdoll/legs/leg_armor_2.png", "start": 4366703, "end": 4369896}, {"filename": "/assets/paperdoll/legs/leg_armor_4.png", "start": 4369896, "end": 4373900}, {"filename": "/assets/paperdoll/legs/pants_black.png", "start": 4373900, "end": 4377890}, {"filename": "/assets/paperdoll/legs/pants_brown.png", "start": 4377890, "end": 4382178}, {"filename": "/assets/paperdoll/middle_brown.png", "start": 4382178, "end": 4385335}, {"filename": "/assets/player.png", "start": 4385335, "end": 4386049}, {"filename": "/assets/skeleton/attack1.png", "start": 4386049, "end": 4411257}, {"filename": "/assets/skeleton/hurt.png", "start": 4411257, "end": 4431920}, {"filename": "/assets/skeleton/idle.png", "start": 4431920, "end": 4454812}, {"filename": "/assets/spell_icons/ArcBolt.bmp", "start": 4454812, "end": 4460674}, {"filename": "/assets/spell_icons/BlessingOfVigor.bmp", "start": 4460674, "end": 4466536}, {"filename": "/assets/spell_icons/CloudMind.bmp", "start": 4466536, "end": 4472398}, {"filename": "/assets/spell_icons/Detonation.bmp", "start": 4472398, "end": 4478260}, {"filename": "/assets/spell_icons/EmberBurst.bmp", "start": 4478260, "end": 4484122}, {"filename": "/assets/spell_icons/FumblingCurse.bmp", "start": 4484122, "end": 4489984}, {"filename": "/assets/spell_icons/GreaterMending.bmp", "start": 4489984, "end": 4495846}, {"filename": "/assets/spell_icons/InfernoStrike.bmp", "start": 4495846, "end": 4501708}, {"filename": "/assets/spell_icons/MendingWord.bmp", "start": 4501708, "end": 4507570}, {"filename": "/assets/spell_icons/PsychicShatter.bmp", "start": 4507570, "end": 4513432}, {"filename": "/assets/spell_icons/SapStrength.bmp", "start": 4513432, "end": 4519294}, {"filename": "/assets/spell_icons/SparkDart.bmp", "start": 4519294, "end": 4525156}, {"filename": "/assets/spell_icons/StormLance.bmp", "start": 4525156, "end": 4531018}, {"filename": "/assets/spell_icons/SummonFiend.bmp", "start": 4531018, "end": 4536880}, {"filename": "/assets/spell_icons/VenomSting.bmp", "start": 4536880, "end": 4542742}, {"filename": "/assets/spell_icons/WoundingTouch.bmp", "start": 4542742, "end": 4548604}, {"filename": "/assets/spellbook_icons/spell_buff.png", "start": 4548604, "end": 4552317}, {"filename": "/assets/spellbook_icons/spell_debuff.png", "start": 4552317, "end": 4556337}, {"filename": "/assets/spellbook_icons/spell_offensive.png", "start": 4556337, "end": 4560552}, {"filename": "/assets/spellbook_icons/spell_utility.png", "start": 4560552, "end": 4565020}, {"filename": "/assets/town_buildings/alchemy.png", "start": 4565020, "end": 4569222}, {"filename": "/assets/town_buildings/bank.png", "start": 4569222, "end": 4573974}, {"filename": "/assets/town_buildings/carpenter.png", "start": 4573974, "end": 4578176}, {"filename": "/assets/town_buildings/healer.png", "start": 4578176, "end": 4580803}, {"filename": "/assets/town_buildings/house.png", "start": 4580803, "end": 4672991}, {"filename": "/assets/town_buildings/provisioner.png", "start": 4672991, "end": 4675618}, {"filename": "/assets/town_buildings/smith.png", "start": 4675618, "end": 4678245}, {"filename": "/assets/town_buildings/stable.png", "start": 4678245, "end": 4682447}, {"filename": "/assets/town_buildings/tailor.png", "start": 4682447, "end": 4685074}, {"filename": "/assets/town_buildings/townhall.png", "start": 4685074, "end": 4688500}, {"filename": "/assets/village/anvil.png", "start": 4688500, "end": 4689629}, {"filename": "/assets/village/autumnbush.png", "start": 4689629, "end": 4692078}, {"filename": "/assets/village/barrel.png", "start": 4692078, "end": 4693415}, {"filename": "/assets/village/bookshelf.png", "start": 4693415, "end": 4693582}, {"filename": "/assets/village/chest.png", "start": 4693582, "end": 4693778}, {"filename": "/assets/village/chicken.png", "start": 4693778, "end": 4694000}, {"filename": "/assets/village/cow.png", "start": 4694000, "end": 4694231}, {"filename": "/assets/village/crate.png", "start": 4694231, "end": 4695320}, {"filename": "/assets/village/door_alchemy.png", "start": 4695320, "end": 4698191}, {"filename": "/assets/village/door_carpenter.png", "start": 4698191, "end": 4700256}, {"filename": "/assets/village/door_smith.png", "start": 4700256, "end": 4702159}, {"filename": "/assets/village/door_tailor.png", "start": 4702159, "end": 4704834}, {"filename": "/assets/village/farmland.png", "start": 4704834, "end": 4705296}, {"filename": "/assets/village/fencepost.png", "start": 4705296, "end": 4705693}, {"filename": "/assets/village/fountain.png", "start": 4705693, "end": 4707661}, {"filename": "/assets/village/lumberpile.png", "start": 4707661, "end": 4708817}, {"filename": "/assets/village/potion_purple.png", "start": 4708817, "end": 4708993}, {"filename": "/assets/village/potion_red.png", "start": 4708993, "end": 4709175}, {"filename": "/assets/village/sheep.png", "start": 4709175, "end": 4709399}, {"filename": "/assets/village/sign_smith.png", "start": 4709399, "end": 4710560}, {"filename": "/assets/village/stall1.png", "start": 4710560, "end": 4712358}, {"filename": "/assets/village/stall2.png", "start": 4712358, "end": 4713915}, {"filename": "/assets/village/stall3.png", "start": 4713915, "end": 4715503}, {"filename": "/assets/village/statue.png", "start": 4715503, "end": 4717149}, {"filename": "/assets/village/streetlamp.png", "start": 4717149, "end": 4718423}, {"filename": "/assets/village/well.png", "start": 4718423, "end": 4720023}, {"filename": "/assets/wilderness/bear.png", "start": 4720023, "end": 4720675}, {"filename": "/assets/wilderness/bison.png", "start": 4720675, "end": 4751920}, {"filename": "/assets/wilderness/bush1.png", "start": 4751920, "end": 4754087}, {"filename": "/assets/wilderness/bush2.png", "start": 4754087, "end": 4756383}, {"filename": "/assets/wilderness/dog.png", "start": 4756383, "end": 4757076}, {"filename": "/assets/wilderness/dragon.png", "start": 4757076, "end": 4758026}, {"filename": "/assets/wilderness/drake.png", "start": 4758026, "end": 4778418}, {"filename": "/assets/wilderness/fern1.png", "start": 4778418, "end": 4781469}, {"filename": "/assets/wilderness/griffin.png", "start": 4781469, "end": 4782141}, {"filename": "/assets/wilderness/horse.png", "start": 4782141, "end": 4798800}, {"filename": "/assets/wilderness/ore1.png", "start": 4798800, "end": 4801718}, {"filename": "/assets/wilderness/ore2.png", "start": 4801718, "end": 4804852}, {"filename": "/assets/wilderness/ore3.png", "start": 4804852, "end": 4808077}, {"filename": "/assets/wilderness/panther.png", "start": 4808077, "end": 4819510}, {"filename": "/assets/wilderness/rock.png", "start": 4819510, "end": 4819844}, {"filename": "/assets/wilderness/sabertooth.png", "start": 4819844, "end": 4839714}, {"filename": "/assets/wilderness/tree.png", "start": 4839714, "end": 4843930}, {"filename": "/assets/wilderness/wild_bandit.png", "start": 4843930, "end": 4844329}, {"filename": "/assets/wilderness/wild_bat.png", "start": 4844329, "end": 4844720}, {"filename": "/assets/wilderness/wild_goblin.png", "start": 4844720, "end": 4845782}, {"filename": "/assets/wilderness/wild_imp.png", "start": 4845782, "end": 4846623}, {"filename": "/assets/wilderness/wild_wolf.png", "start": 4846623, "end": 4848511}, {"filename": "/assets/wilderness/wolf.png", "start": 4848511, "end": 4849223}, {"filename": "/assets/wilderness/wyvern.png", "start": 4849223, "end": 4880357}, {"filename": "/assets/wilderness_entrances/bloodtusk.png", "start": 4880357, "end": 4880854}, {"filename": "/assets/wilderness_entrances/emberveil.png", "start": 4880854, "end": 4881391}, {"filename": "/assets/wilderness_entrances/hollowwarrens.png", "start": 4881391, "end": 4882164}, {"filename": "/assets/wilderness_entrances/sunkencrypt.png", "start": 4882164, "end": 4882654}, {"filename": "/assets/wilderness_entrances/wyrmscar.png", "start": 4882654, "end": 4883129}, {"filename": "/assets/wilderness_props/bush.png", "start": 4883129, "end": 4889044}, {"filename": "/assets/wilderness_props/cactus.png", "start": 4889044, "end": 4892673}, {"filename": "/assets/wilderness_props/chest.png", "start": 4892673, "end": 4901497}, {"filename": "/assets/wilderness_props/deerskull.png", "start": 4901497, "end": 4907535}, {"filename": "/assets/wilderness_props/fence.png", "start": 4907535, "end": 4913701}, {"filename": "/assets/wilderness_props/grass.png", "start": 4913701, "end": 4923687}, {"filename": "/assets/wilderness_props/haybale.png", "start": 4923687, "end": 4932100}, {"filename": "/assets/wilderness_props/plant.png", "start": 4932100, "end": 4936360}, {"filename": "/assets/wilderness_props/rocks.png", "start": 4936360, "end": 4942611}, {"filename": "/assets/wilderness_props/water.png", "start": 4942611, "end": 4949382}], "remote_package_size": 4949382});
+    loadPackage({"files": [{"filename": "/assets/buildings/alchemy.png", "start": 0, "end": 758}, {"filename": "/assets/buildings/bank.png", "start": 758, "end": 1605}, {"filename": "/assets/buildings/carpenter.png", "start": 1605, "end": 1996}, {"filename": "/assets/buildings/door.png", "start": 1996, "end": 3954}, {"filename": "/assets/buildings/healer.png", "start": 3954, "end": 4136}, {"filename": "/assets/buildings/provisioner.png", "start": 4136, "end": 4744}, {"filename": "/assets/buildings/smith.png", "start": 4744, "end": 5360}, {"filename": "/assets/buildings/stable.png", "start": 5360, "end": 6012}, {"filename": "/assets/buildings/tailor.png", "start": 6012, "end": 6668}, {"filename": "/assets/buildings/townhall.png", "start": 6668, "end": 7262}, {"filename": "/assets/dungeon/floor.png", "start": 7262, "end": 9622}, {"filename": "/assets/dungeon/wall.png", "start": 9622, "end": 9783}, {"filename": "/assets/dungeon_themed/alchemy_floor.png", "start": 9783, "end": 10921}, {"filename": "/assets/dungeon_themed/alchemy_wall.png", "start": 10921, "end": 12270}, {"filename": "/assets/dungeon_themed/bloodtusk_floor.png", "start": 12270, "end": 12840}, {"filename": "/assets/dungeon_themed/bloodtusk_wall.png", "start": 12840, "end": 13620}, {"filename": "/assets/dungeon_themed/carpenter_floor.png", "start": 13620, "end": 14761}, {"filename": "/assets/dungeon_themed/carpenter_wall.png", "start": 14761, "end": 15686}, {"filename": "/assets/dungeon_themed/emberveil_brazier.png", "start": 15686, "end": 16292}, {"filename": "/assets/dungeon_themed/emberveil_floor.png", "start": 16292, "end": 17411}, {"filename": "/assets/dungeon_themed/emberveil_wall.png", "start": 17411, "end": 18720}, {"filename": "/assets/dungeon_themed/hollowwarrens_floor.png", "start": 18720, "end": 18881}, {"filename": "/assets/dungeon_themed/hollowwarrens_rug.png", "start": 18881, "end": 20901}, {"filename": "/assets/dungeon_themed/hollowwarrens_torch.png", "start": 20901, "end": 21211}, {"filename": "/assets/dungeon_themed/hollowwarrens_wall.png", "start": 21211, "end": 21346}, {"filename": "/assets/dungeon_themed/provisioner_floor.png", "start": 21346, "end": 22496}, {"filename": "/assets/dungeon_themed/provisioner_wall.png", "start": 22496, "end": 23298}, {"filename": "/assets/dungeon_themed/smith_floor.png", "start": 23298, "end": 23745}, {"filename": "/assets/dungeon_themed/smith_wall.png", "start": 23745, "end": 24870}, {"filename": "/assets/dungeon_themed/sunkencrypt_floor.png", "start": 24870, "end": 25779}, {"filename": "/assets/dungeon_themed/sunkencrypt_wall.png", "start": 25779, "end": 26821}, {"filename": "/assets/dungeon_themed/sunkencrypt_water.png", "start": 26821, "end": 27238}, {"filename": "/assets/dungeon_themed/tailor_floor.png", "start": 27238, "end": 28117}, {"filename": "/assets/dungeon_themed/tailor_wall.png", "start": 28117, "end": 28930}, {"filename": "/assets/dungeon_themed/wyrmscar_floor.png", "start": 28930, "end": 30158}, {"filename": "/assets/dungeon_themed/wyrmscar_wall.png", "start": 30158, "end": 30639}, {"filename": "/assets/fonts/Nunito.ttf", "start": 30639, "end": 307571}, {"filename": "/assets/gear_icons/amulet.png", "start": 307571, "end": 311431}, {"filename": "/assets/gear_icons/gauntlet.png", "start": 311431, "end": 316288}, {"filename": "/assets/gear_icons/helmet.png", "start": 316288, "end": 324772}, {"filename": "/assets/gear_icons/shield.png", "start": 324772, "end": 336195}, {"filename": "/assets/gear_icons/shield2.png", "start": 336195, "end": 347427}, {"filename": "/assets/gear_icons/sword.png", "start": 347427, "end": 350530}, {"filename": "/assets/ground/dirt.png", "start": 350530, "end": 350992}, {"filename": "/assets/ground/foliage.png", "start": 350992, "end": 352234}, {"filename": "/assets/ground/grass.png", "start": 352234, "end": 353409}, {"filename": "/assets/hero/walk.png", "start": 353409, "end": 426782}, {"filename": "/assets/item_icons/Bardiche.bmp", "start": 426782, "end": 439996}, {"filename": "/assets/item_icons/BlackStaff.bmp", "start": 439996, "end": 463442}, {"filename": "/assets/item_icons/Bow.bmp", "start": 463442, "end": 471240}, {"filename": "/assets/item_icons/Broadsword.bmp", "start": 471240, "end": 475518}, {"filename": "/assets/item_icons/ChainTunic.bmp", "start": 475518, "end": 663576}, {"filename": "/assets/item_icons/ChainmailGloves.bmp", "start": 663576, "end": 848490}, {"filename": "/assets/item_icons/ChainmailLeggings.bmp", "start": 848490, "end": 1036548}, {"filename": "/assets/item_icons/Club.bmp", "start": 1036548, "end": 1042234}, {"filename": "/assets/item_icons/CompositeBow.bmp", "start": 1042234, "end": 1050032}, {"filename": "/assets/item_icons/Crossbow.bmp", "start": 1050032, "end": 1055894}, {"filename": "/assets/item_icons/Cutlass.bmp", "start": 1055894, "end": 1060304}, {"filename": "/assets/item_icons/GnarledStaff.bmp", "start": 1060304, "end": 1083750}, {"filename": "/assets/item_icons/Halberd.bmp", "start": 1083750, "end": 1096964}, {"filename": "/assets/item_icons/HeavyCrossbow.bmp", "start": 1096964, "end": 1103354}, {"filename": "/assets/item_icons/Katana.bmp", "start": 1103354, "end": 1108292}, {"filename": "/assets/item_icons/Kryss.bmp", "start": 1108292, "end": 1113230}, {"filename": "/assets/item_icons/LeatherGloves.bmp", "start": 1113230, "end": 1298144}, {"filename": "/assets/item_icons/LeatherLeggings.bmp", "start": 1298144, "end": 1486202}, {"filename": "/assets/item_icons/LeatherSleeves.bmp", "start": 1486202, "end": 1674260}, {"filename": "/assets/item_icons/LeatherTunic.bmp", "start": 1674260, "end": 1862318}, {"filename": "/assets/item_icons/Longsword.bmp", "start": 1862318, "end": 1867256}, {"filename": "/assets/item_icons/Mace.bmp", "start": 1867256, "end": 1873998}, {"filename": "/assets/item_icons/Maul.bmp", "start": 1873998, "end": 1881444}, {"filename": "/assets/item_icons/Pitchfork.bmp", "start": 1881444, "end": 1898438}, {"filename": "/assets/item_icons/PlateArms.bmp", "start": 1898438, "end": 2086496}, {"filename": "/assets/item_icons/PlateChest.bmp", "start": 2086496, "end": 2274554}, {"filename": "/assets/item_icons/PlateGloves.bmp", "start": 2274554, "end": 2459468}, {"filename": "/assets/item_icons/PlateLegs.bmp", "start": 2459468, "end": 2647526}, {"filename": "/assets/item_icons/PotionDamage.bmp", "start": 2647526, "end": 2655608}, {"filename": "/assets/item_icons/PotionHeal.bmp", "start": 2655608, "end": 2663690}, {"filename": "/assets/item_icons/PotionPoison.bmp", "start": 2663690, "end": 2671772}, {"filename": "/assets/item_icons/PotionStamina.bmp", "start": 2671772, "end": 2679854}, {"filename": "/assets/item_icons/Quarterstaff.bmp", "start": 2679854, "end": 2703300}, {"filename": "/assets/item_icons/RingMailLeggings.bmp", "start": 2703300, "end": 2891358}, {"filename": "/assets/item_icons/RingMailSleeves.bmp", "start": 2891358, "end": 3079416}, {"filename": "/assets/item_icons/RingMailTunic.bmp", "start": 3079416, "end": 3267474}, {"filename": "/assets/item_icons/Scimitar.bmp", "start": 3267474, "end": 3272808}, {"filename": "/assets/item_icons/ShepherdsCrook.bmp", "start": 3272808, "end": 3301198}, {"filename": "/assets/item_icons/ShortSpear.bmp", "start": 3301198, "end": 3311252}, {"filename": "/assets/item_icons/Spear.bmp", "start": 3311252, "end": 3337566}, {"filename": "/assets/item_icons/StuddedGloves.bmp", "start": 3337566, "end": 3522480}, {"filename": "/assets/item_icons/StuddedLeggings.bmp", "start": 3522480, "end": 3710538}, {"filename": "/assets/item_icons/StuddedSleeves.bmp", "start": 3710538, "end": 3898596}, {"filename": "/assets/item_icons/StuddedTunic.bmp", "start": 3898596, "end": 4086654}, {"filename": "/assets/item_icons/VikingSword.bmp", "start": 4086654, "end": 4091856}, {"filename": "/assets/item_icons/WarAxe.bmp", "start": 4091856, "end": 4097586}, {"filename": "/assets/item_icons/WarFork.bmp", "start": 4097586, "end": 4105208}, {"filename": "/assets/item_icons/WarHammer.bmp", "start": 4105208, "end": 4109618}, {"filename": "/assets/knight/attack1.png", "start": 4109618, "end": 4136362}, {"filename": "/assets/knight/attack2.png", "start": 4136362, "end": 4163082}, {"filename": "/assets/knight/defend.png", "start": 4163082, "end": 4187106}, {"filename": "/assets/knight/hurt.png", "start": 4187106, "end": 4210569}, {"filename": "/assets/knight/idle.png", "start": 4210569, "end": 4236373}, {"filename": "/assets/knight/protect.png", "start": 4236373, "end": 4258601}, {"filename": "/assets/monsters/bat.png", "start": 4258601, "end": 4258796}, {"filename": "/assets/monsters/bloodtusk.png", "start": 4258796, "end": 4259256}, {"filename": "/assets/monsters/emberveil.png", "start": 4259256, "end": 4259759}, {"filename": "/assets/monsters/ghost.png", "start": 4259759, "end": 4259948}, {"filename": "/assets/monsters/hollowwarrens.png", "start": 4259948, "end": 4260529}, {"filename": "/assets/monsters/orc.png", "start": 4260529, "end": 4260732}, {"filename": "/assets/monsters/slime.png", "start": 4260732, "end": 4260921}, {"filename": "/assets/monsters/sunkencrypt.png", "start": 4260921, "end": 4261158}, {"filename": "/assets/monsters/wyrmscar.png", "start": 4261158, "end": 4262108}, {"filename": "/assets/monsters_boss/bloodtusk.png", "start": 4262108, "end": 4263237}, {"filename": "/assets/monsters_boss/emberveil.png", "start": 4263237, "end": 4263769}, {"filename": "/assets/monsters_boss/hollowwarrens.png", "start": 4263769, "end": 4264231}, {"filename": "/assets/monsters_boss/sunkencrypt.png", "start": 4264231, "end": 4264707}, {"filename": "/assets/monsters_boss/wyrmscar.png", "start": 4264707, "end": 4265238}, {"filename": "/assets/paperdoll/arms/chainmail.png", "start": 4265238, "end": 4267569}, {"filename": "/assets/paperdoll/arms/leather.png", "start": 4267569, "end": 4269959}, {"filename": "/assets/paperdoll/arms/plate.png", "start": 4269959, "end": 4272513}, {"filename": "/assets/paperdoll/arms/ringmail.png", "start": 4272513, "end": 4274758}, {"filename": "/assets/paperdoll/arms/studded.png", "start": 4274758, "end": 4277209}, {"filename": "/assets/paperdoll/base/human_male.png", "start": 4277209, "end": 4290285}, {"filename": "/assets/paperdoll/body/chainmail.png", "start": 4290285, "end": 4297262}, {"filename": "/assets/paperdoll/body/leather_armor.png", "start": 4297262, "end": 4304045}, {"filename": "/assets/paperdoll/body/leather_stud.png", "start": 4304045, "end": 4311038}, {"filename": "/assets/paperdoll/body/plate.png", "start": 4311038, "end": 4317851}, {"filename": "/assets/paperdoll/body/ringmail.png", "start": 4317851, "end": 4324124}, {"filename": "/assets/paperdoll/boots/middle_brown.png", "start": 4324124, "end": 4327281}, {"filename": "/assets/paperdoll/brown_1.png", "start": 4327281, "end": 4329184}, {"filename": "/assets/paperdoll/gloves/gauntlet_blue.png", "start": 4329184, "end": 4331928}, {"filename": "/assets/paperdoll/gloves/glove_black.png", "start": 4331928, "end": 4334571}, {"filename": "/assets/paperdoll/gloves/glove_brown.png", "start": 4334571, "end": 4337159}, {"filename": "/assets/paperdoll/gloves/glove_gold.png", "start": 4337159, "end": 4339935}, {"filename": "/assets/paperdoll/gloves/glove_gray.png", "start": 4339935, "end": 4342376}, {"filename": "/assets/paperdoll/gorget/leather.png", "start": 4342376, "end": 4343695}, {"filename": "/assets/paperdoll/gorget/plate.png", "start": 4343695, "end": 4345198}, {"filename": "/assets/paperdoll/gorget/studded.png", "start": 4345198, "end": 4346611}, {"filename": "/assets/paperdoll/hair/brown_1.png", "start": 4346611, "end": 4348514}, {"filename": "/assets/paperdoll/hand_right/bow.png", "start": 4348514, "end": 4348686}, {"filename": "/assets/paperdoll/hand_right/bow_2.png", "start": 4348686, "end": 4348870}, {"filename": "/assets/paperdoll/hand_right/bow_3.png", "start": 4348870, "end": 4349070}, {"filename": "/assets/paperdoll/hand_right/broadsword.png", "start": 4349070, "end": 4349343}, {"filename": "/assets/paperdoll/hand_right/club.png", "start": 4349343, "end": 4349538}, {"filename": "/assets/paperdoll/hand_right/crossbow.png", "start": 4349538, "end": 4349833}, {"filename": "/assets/paperdoll/hand_right/crossbow_3.png", "start": 4349833, "end": 4350046}, {"filename": "/assets/paperdoll/hand_right/fork_2.png", "start": 4350046, "end": 4350232}, {"filename": "/assets/paperdoll/hand_right/glaive_new.png", "start": 4350232, "end": 4350454}, {"filename": "/assets/paperdoll/hand_right/great_mace.png", "start": 4350454, "end": 4350677}, {"filename": "/assets/paperdoll/hand_right/halberd_new.png", "start": 4350677, "end": 4350917}, {"filename": "/assets/paperdoll/hand_right/heavy_sword.png", "start": 4350917, "end": 4351145}, {"filename": "/assets/paperdoll/hand_right/katana.png", "start": 4351145, "end": 4351344}, {"filename": "/assets/paperdoll/hand_right/large_mace.png", "start": 4351344, "end": 4351557}, {"filename": "/assets/paperdoll/hand_right/long_sword.png", "start": 4351557, "end": 4351735}, {"filename": "/assets/paperdoll/hand_right/mace_new.png", "start": 4351735, "end": 4351925}, {"filename": "/assets/paperdoll/hand_right/pole_forked.png", "start": 4351925, "end": 4352168}, {"filename": "/assets/paperdoll/hand_right/quarterstaff.png", "start": 4352168, "end": 4352340}, {"filename": "/assets/paperdoll/hand_right/rapier.png", "start": 4352340, "end": 4352557}, {"filename": "/assets/paperdoll/hand_right/sabre.png", "start": 4352557, "end": 4352767}, {"filename": "/assets/paperdoll/hand_right/scimitar_new.png", "start": 4352767, "end": 4353020}, {"filename": "/assets/paperdoll/hand_right/spear.png", "start": 4353020, "end": 4353224}, {"filename": "/assets/paperdoll/hand_right/spear_1.png", "start": 4353224, "end": 4353390}, {"filename": "/assets/paperdoll/hand_right/staff_evil.png", "start": 4353390, "end": 4353685}, {"filename": "/assets/paperdoll/hand_right/staff_organic.png", "start": 4353685, "end": 4353992}, {"filename": "/assets/paperdoll/hand_right/staff_plain.png", "start": 4353992, "end": 4354180}, {"filename": "/assets/paperdoll/hand_right/war_axe_new.png", "start": 4354180, "end": 4354401}, {"filename": "/assets/paperdoll/head/cap_black_1.png", "start": 4354401, "end": 4354603}, {"filename": "/assets/paperdoll/head/chain.png", "start": 4354603, "end": 4356342}, {"filename": "/assets/paperdoll/head/hood_ybrown.png", "start": 4356342, "end": 4358144}, {"filename": "/assets/paperdoll/head/iron_1.png", "start": 4358144, "end": 4359834}, {"filename": "/assets/paperdoll/human_male.png", "start": 4359834, "end": 4372910}, {"filename": "/assets/paperdoll/legs/leg_armor_1.png", "start": 4372910, "end": 4376472}, {"filename": "/assets/paperdoll/legs/leg_armor_2.png", "start": 4376472, "end": 4379665}, {"filename": "/assets/paperdoll/legs/leg_armor_4.png", "start": 4379665, "end": 4383669}, {"filename": "/assets/paperdoll/legs/pants_black.png", "start": 4383669, "end": 4387659}, {"filename": "/assets/paperdoll/legs/pants_brown.png", "start": 4387659, "end": 4391947}, {"filename": "/assets/paperdoll/middle_brown.png", "start": 4391947, "end": 4395104}, {"filename": "/assets/player.png", "start": 4395104, "end": 4395818}, {"filename": "/assets/skeleton/attack1.png", "start": 4395818, "end": 4421026}, {"filename": "/assets/skeleton/hurt.png", "start": 4421026, "end": 4441689}, {"filename": "/assets/skeleton/idle.png", "start": 4441689, "end": 4464581}, {"filename": "/assets/spell_icons/ArcBolt.bmp", "start": 4464581, "end": 4470443}, {"filename": "/assets/spell_icons/BlessingOfVigor.bmp", "start": 4470443, "end": 4476305}, {"filename": "/assets/spell_icons/CloudMind.bmp", "start": 4476305, "end": 4482167}, {"filename": "/assets/spell_icons/Detonation.bmp", "start": 4482167, "end": 4488029}, {"filename": "/assets/spell_icons/EmberBurst.bmp", "start": 4488029, "end": 4493891}, {"filename": "/assets/spell_icons/FumblingCurse.bmp", "start": 4493891, "end": 4499753}, {"filename": "/assets/spell_icons/GreaterMending.bmp", "start": 4499753, "end": 4505615}, {"filename": "/assets/spell_icons/InfernoStrike.bmp", "start": 4505615, "end": 4511477}, {"filename": "/assets/spell_icons/MendingWord.bmp", "start": 4511477, "end": 4517339}, {"filename": "/assets/spell_icons/PsychicShatter.bmp", "start": 4517339, "end": 4523201}, {"filename": "/assets/spell_icons/SapStrength.bmp", "start": 4523201, "end": 4529063}, {"filename": "/assets/spell_icons/SparkDart.bmp", "start": 4529063, "end": 4534925}, {"filename": "/assets/spell_icons/StormLance.bmp", "start": 4534925, "end": 4540787}, {"filename": "/assets/spell_icons/SummonFiend.bmp", "start": 4540787, "end": 4546649}, {"filename": "/assets/spell_icons/VenomSting.bmp", "start": 4546649, "end": 4552511}, {"filename": "/assets/spell_icons/WoundingTouch.bmp", "start": 4552511, "end": 4558373}, {"filename": "/assets/spellbook_icons/spell_buff.png", "start": 4558373, "end": 4562086}, {"filename": "/assets/spellbook_icons/spell_debuff.png", "start": 4562086, "end": 4566106}, {"filename": "/assets/spellbook_icons/spell_offensive.png", "start": 4566106, "end": 4570321}, {"filename": "/assets/spellbook_icons/spell_utility.png", "start": 4570321, "end": 4574789}, {"filename": "/assets/town_buildings/alchemy.png", "start": 4574789, "end": 4578991}, {"filename": "/assets/town_buildings/bank.png", "start": 4578991, "end": 4583743}, {"filename": "/assets/town_buildings/carpenter.png", "start": 4583743, "end": 4587945}, {"filename": "/assets/town_buildings/healer.png", "start": 4587945, "end": 4590572}, {"filename": "/assets/town_buildings/house.png", "start": 4590572, "end": 4682760}, {"filename": "/assets/town_buildings/provisioner.png", "start": 4682760, "end": 4685387}, {"filename": "/assets/town_buildings/smith.png", "start": 4685387, "end": 4688014}, {"filename": "/assets/town_buildings/stable.png", "start": 4688014, "end": 4692216}, {"filename": "/assets/town_buildings/tailor.png", "start": 4692216, "end": 4694843}, {"filename": "/assets/town_buildings/townhall.png", "start": 4694843, "end": 4698269}, {"filename": "/assets/village/anvil.png", "start": 4698269, "end": 4699398}, {"filename": "/assets/village/autumnbush.png", "start": 4699398, "end": 4701847}, {"filename": "/assets/village/barrel.png", "start": 4701847, "end": 4703184}, {"filename": "/assets/village/bookshelf.png", "start": 4703184, "end": 4703351}, {"filename": "/assets/village/chest.png", "start": 4703351, "end": 4703547}, {"filename": "/assets/village/chicken.png", "start": 4703547, "end": 4703769}, {"filename": "/assets/village/cow.png", "start": 4703769, "end": 4704000}, {"filename": "/assets/village/crate.png", "start": 4704000, "end": 4705089}, {"filename": "/assets/village/door_alchemy.png", "start": 4705089, "end": 4707960}, {"filename": "/assets/village/door_carpenter.png", "start": 4707960, "end": 4710025}, {"filename": "/assets/village/door_smith.png", "start": 4710025, "end": 4711928}, {"filename": "/assets/village/door_tailor.png", "start": 4711928, "end": 4714603}, {"filename": "/assets/village/farmland.png", "start": 4714603, "end": 4715065}, {"filename": "/assets/village/fencepost.png", "start": 4715065, "end": 4715462}, {"filename": "/assets/village/fountain.png", "start": 4715462, "end": 4717430}, {"filename": "/assets/village/lumberpile.png", "start": 4717430, "end": 4718586}, {"filename": "/assets/village/potion_purple.png", "start": 4718586, "end": 4718762}, {"filename": "/assets/village/potion_red.png", "start": 4718762, "end": 4718944}, {"filename": "/assets/village/sheep.png", "start": 4718944, "end": 4719168}, {"filename": "/assets/village/sign_smith.png", "start": 4719168, "end": 4720329}, {"filename": "/assets/village/stall1.png", "start": 4720329, "end": 4722127}, {"filename": "/assets/village/stall2.png", "start": 4722127, "end": 4723684}, {"filename": "/assets/village/stall3.png", "start": 4723684, "end": 4725272}, {"filename": "/assets/village/statue.png", "start": 4725272, "end": 4726918}, {"filename": "/assets/village/streetlamp.png", "start": 4726918, "end": 4728192}, {"filename": "/assets/village/well.png", "start": 4728192, "end": 4729792}, {"filename": "/assets/wilderness/bear.png", "start": 4729792, "end": 4730444}, {"filename": "/assets/wilderness/bison.png", "start": 4730444, "end": 4761689}, {"filename": "/assets/wilderness/bush1.png", "start": 4761689, "end": 4763856}, {"filename": "/assets/wilderness/bush2.png", "start": 4763856, "end": 4766152}, {"filename": "/assets/wilderness/dog.png", "start": 4766152, "end": 4766845}, {"filename": "/assets/wilderness/dragon.png", "start": 4766845, "end": 4767795}, {"filename": "/assets/wilderness/drake.png", "start": 4767795, "end": 4788187}, {"filename": "/assets/wilderness/fern1.png", "start": 4788187, "end": 4791238}, {"filename": "/assets/wilderness/griffin.png", "start": 4791238, "end": 4791910}, {"filename": "/assets/wilderness/horse.png", "start": 4791910, "end": 4808569}, {"filename": "/assets/wilderness/ore1.png", "start": 4808569, "end": 4811487}, {"filename": "/assets/wilderness/ore2.png", "start": 4811487, "end": 4814621}, {"filename": "/assets/wilderness/ore3.png", "start": 4814621, "end": 4817846}, {"filename": "/assets/wilderness/panther.png", "start": 4817846, "end": 4829279}, {"filename": "/assets/wilderness/rock.png", "start": 4829279, "end": 4829613}, {"filename": "/assets/wilderness/sabertooth.png", "start": 4829613, "end": 4849483}, {"filename": "/assets/wilderness/tree.png", "start": 4849483, "end": 4853699}, {"filename": "/assets/wilderness/wild_bandit.png", "start": 4853699, "end": 4854098}, {"filename": "/assets/wilderness/wild_bat.png", "start": 4854098, "end": 4854489}, {"filename": "/assets/wilderness/wild_goblin.png", "start": 4854489, "end": 4855551}, {"filename": "/assets/wilderness/wild_imp.png", "start": 4855551, "end": 4856392}, {"filename": "/assets/wilderness/wild_wolf.png", "start": 4856392, "end": 4858280}, {"filename": "/assets/wilderness/wolf.png", "start": 4858280, "end": 4858992}, {"filename": "/assets/wilderness/wyvern.png", "start": 4858992, "end": 4890126}, {"filename": "/assets/wilderness_entrances/bloodtusk.png", "start": 4890126, "end": 4890623}, {"filename": "/assets/wilderness_entrances/emberveil.png", "start": 4890623, "end": 4891160}, {"filename": "/assets/wilderness_entrances/hollowwarrens.png", "start": 4891160, "end": 4891933}, {"filename": "/assets/wilderness_entrances/sunkencrypt.png", "start": 4891933, "end": 4892423}, {"filename": "/assets/wilderness_entrances/wyrmscar.png", "start": 4892423, "end": 4892898}, {"filename": "/assets/wilderness_props/bush.png", "start": 4892898, "end": 4898813}, {"filename": "/assets/wilderness_props/cactus.png", "start": 4898813, "end": 4902442}, {"filename": "/assets/wilderness_props/chest.png", "start": 4902442, "end": 4911266}, {"filename": "/assets/wilderness_props/deerskull.png", "start": 4911266, "end": 4917304}, {"filename": "/assets/wilderness_props/fence.png", "start": 4917304, "end": 4923470}, {"filename": "/assets/wilderness_props/grass.png", "start": 4923470, "end": 4933456}, {"filename": "/assets/wilderness_props/haybale.png", "start": 4933456, "end": 4941869}, {"filename": "/assets/wilderness_props/plant.png", "start": 4941869, "end": 4946129}, {"filename": "/assets/wilderness_props/rocks.png", "start": 4946129, "end": 4952380}, {"filename": "/assets/wilderness_props/water.png", "start": 4952380, "end": 4959151}], "remote_package_size": 4959151});
 
   })();
 
-// end include: C:\Users\markr\AppData\Local\Temp\tmpw73srehp.js
+// end include: C:\Users\markr\AppData\Local\Temp\tmpfz5g6oo1.js
+// include: C:\Users\markr\AppData\Local\Temp\tmpr39kw2st.js
+
+    // All the pre-js content up to here must remain later on, we need to run
+    // it.
+    if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
+    var necessaryPreJSTasks = Module['preRun'].slice();
+  // end include: C:\Users\markr\AppData\Local\Temp\tmpr39kw2st.js
+// include: C:\Users\markr\AppData\Local\Temp\tmpja7rhimr.js
+
+    if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
+    necessaryPreJSTasks.forEach((task) => {
+      if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
+    });
+  // end include: C:\Users\markr\AppData\Local\Temp\tmpja7rhimr.js
 
 
 var programArgs = [];
@@ -220,6 +281,8 @@ function locateFile(path) {
 var readAsync, readBinary;
 
 if (ENVIRONMENT_IS_NODE) {
+  const isNode = globalThis.process?.versions?.node && globalThis.process?.type != 'renderer';
+  if (!isNode) throw new Error('not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)');
 
   // These modules will usually be used on Node.js. Load them eagerly to avoid
   // the complexity of lazy-loading.
@@ -232,6 +295,7 @@ readBinary = (filename) => {
   // We need to re-wrap `file://` strings to URLs.
   filename = isFileURI(filename) ? new URL(filename) : filename;
   var ret = fs.readFileSync(filename);
+  assert(Buffer.isBuffer(ret));
   return ret;
 };
 
@@ -239,6 +303,7 @@ readAsync = async (filename, binary = true) => {
   // See the comment in the `readBinary` function.
   filename = isFileURI(filename) ? new URL(filename) : filename;
   var ret = fs.readFileSync(filename, binary ? undefined : 'utf8');
+  assert(binary ? Buffer.isBuffer(ret) : typeof ret == 'string');
   return ret;
 };
 // end include: node_shell_read.js
@@ -259,6 +324,9 @@ readAsync = async (filename, binary = true) => {
   };
 
 } else
+if (ENVIRONMENT_IS_SHELL) {
+
+} else
 
 // Note that this includes Node.js workers when relevant (pthreads is enabled).
 // Node.js workers are detected as a combination of ENVIRONMENT_IS_WORKER and
@@ -270,6 +338,8 @@ if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
     // Must be a `blob:` or `data:` URL (e.g. `blob:http://site.com/etc/etc`), we cannot
     // infer anything from them.
   }
+
+  if (!(globalThis.window || globalThis.WorkerGlobalScope)) throw new Error('not compiled for this environment (did you build to HTML and try to run it not on the web, or set ENVIRONMENT to something - like node - and run it someplace else - like on the web?)');
 
   {
 // include: web_or_worker_shell_read.js
@@ -314,10 +384,26 @@ if (ENVIRONMENT_IS_WORKER) {
   }
 } else
 {
+  throw new Error('environment detection error');
 }
 
 var out = console.log.bind(console);
 var err = console.error.bind(console);
+
+var IDBFS = 'IDBFS is no longer included by default; build with -lidbfs.js';
+var PROXYFS = 'PROXYFS is no longer included by default; build with -lproxyfs.js';
+var WORKERFS = 'WORKERFS is no longer included by default; build with -lworkerfs.js';
+var FETCHFS = 'FETCHFS is no longer included by default; build with -lfetchfs.js';
+var ICASEFS = 'ICASEFS is no longer included by default; build with -licasefs.js';
+var JSFILEFS = 'JSFILEFS is no longer included by default; build with -ljsfilefs.js';
+var OPFS = 'OPFS is no longer included by default; build with -lopfs.js';
+
+var NODEFS = 'NODEFS is no longer included by default; build with -lnodefs.js';
+
+// perform assertions in shell.js after we set up out() and err(), as otherwise
+// if an assertion fails it cannot print the message
+
+assert(!ENVIRONMENT_IS_SHELL, 'shell environment detected but not enabled at build time (add `shell` to `-sENVIRONMENT` to enable)');
 
 // end include: shell.js
 
@@ -333,6 +419,10 @@ var err = console.error.bind(console);
 //    is up at http://kripken.github.io/emscripten-site/docs/api_reference/preamble.js.html
 
 var wasmBinary;
+
+if (!globalThis.WebAssembly) {
+  err('no native wasm support detected');
+}
 
 // Wasm globals
 
@@ -356,12 +446,12 @@ var EXITSTATUS;
 /** @type {function(*, string=)} */
 function assert(condition, text) {
   if (!condition) {
-    // This build was created without ASSERTIONS defined.  `assert()` should not
-    // ever be called in this configuration but in case there are callers in
-    // the wild leave this simple abort() implementation here for now.
-    abort(text);
+    abort('Assertion failed' + (text ? ': ' + text : ''));
   }
 }
+
+// We used to include malloc/free by default in the past. Show a helpful error in
+// builds with assertions.
 
 /**
  * Indicates whether filename is delivered via file protocol (as opposed to http/https)
@@ -378,7 +468,191 @@ class EmscriptenSjLj extends EmscriptenEH {}
 
 // end include: runtime_exceptions.js
 // include: runtime_debug.js
+var runtimeDebug = true; // Switch to false at runtime to disable logging at the right times
+
+// Used by XXXXX_DEBUG settings to output debug messages.
+function dbg(...args) {
+  if (!runtimeDebug && typeof runtimeDebug != 'undefined') return;
+  // TODO(sbc): Make this configurable somehow.  Its not always convenient for
+  // logging to show up as warnings.
+  console.warn(...args);
+}
+
+// Endianness check
+(() => {
+  var h16 = new Int16Array(1);
+  var h8 = new Int8Array(h16.buffer);
+  h16[0] = 0x6373;
+  if (h8[0] !== 0x73 || h8[1] !== 0x63) abort('Runtime error: expected the system to be little-endian! (Run with -sSUPPORT_BIG_ENDIAN to bypass)');
+})();
+
+function consumedModuleProp(prop) {
+  var value = Module[prop];
+  var msg = `Attempt to modify \`Module.${prop}\` after it has already been processed.  This can happen, for example, when code is injected via '--post-js' rather than '--pre-js'`;
+  if (Array.isArray(value)) {
+    value = new Proxy(value, {
+      set(target, key, val) {
+        abort(msg);
+        return false;
+      },
+      defineProperty(target, key, descriptor) {
+        abort(msg);
+        return false;
+      },
+      deleteProperty(target, key) {
+        abort(msg);
+        return false;
+      }
+    });
+  }
+  Object.defineProperty(Module, prop, {
+    configurable: true,
+    get() { return value; },
+    set() {
+      abort(msg);
+    }
+  });
+}
+
+function makeInvalidEarlyAccess(name) {
+  return () => assert(false, `call to '${name}' via reference taken before Wasm module initialization`);
+
+}
+
+function ignoredModuleProp(prop) {
+  if (Object.getOwnPropertyDescriptor(Module, prop)) {
+    abort(`\`Module.${prop}\` was supplied but \`${prop}\` not included in INCOMING_MODULE_JS_API`);
+  }
+}
+
+// forcing the filesystem exports a few things by default
+function isExportedByForceFilesystem(name) {
+  return name === 'FS_createPath' ||
+         name === 'FS_createDataFile' ||
+         name === 'FS_createPreloadedFile' ||
+         name === 'FS_preloadFile' ||
+         name === 'FS_unlink' ||
+         name === 'addRunDependency' ||
+         // The old FS has some functionality that WasmFS lacks.
+         name === 'FS_createLazyFile' ||
+         name === 'FS_createDevice' ||
+         name === 'removeRunDependency';
+}
+
+/**
+ * Intercept access to a symbols in the global symbol.  This enables us to give
+ * informative warnings/errors when folks attempt to use symbols they did not
+ * include in their build, or no symbols that no longer exist.
+ *
+ * We don't define this in MODULARIZE mode since in that mode emscripten symbols
+ * are never placed in the global scope.
+ */
+function hookGlobalSymbolAccess(sym, func) {
+  if (!Object.getOwnPropertyDescriptor(globalThis, sym)) {
+    Object.defineProperty(globalThis, sym, {
+      configurable: true,
+      get() {
+        func();
+        return undefined;
+      }
+    });
+  }
+}
+
+function missingGlobal(sym, msg) {
+  hookGlobalSymbolAccess(sym, () => {
+    warnOnce(`\`${sym}\` is no longer defined by emscripten. ${msg}`);
+  });
+}
+
+missingGlobal('buffer', 'Please use HEAP8.buffer or wasmMemory.buffer');
+missingGlobal('asm', 'Please use wasmExports instead');
+
+function missingLibrarySymbol(sym) {
+  hookGlobalSymbolAccess(sym, () => {
+    // Can't `abort()` here because it would break code that does runtime
+    // checks.  e.g. `if (typeof SDL === 'undefined')`.
+    var msg = `\`${sym}\` is a library symbol and not included by default; add it to your library.js __deps or to DEFAULT_LIBRARY_FUNCS_TO_INCLUDE on the command line`;
+    // DEFAULT_LIBRARY_FUNCS_TO_INCLUDE requires the name as it appears in
+    // library.js, which means $name for a JS name with no prefix, or name
+    // for a JS name like _name.
+    var librarySymbol = sym;
+    if (!librarySymbol.startsWith('_')) {
+      librarySymbol = '$' + sym;
+    }
+    msg += ` (e.g. -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE='${librarySymbol}')`;
+    if (isExportedByForceFilesystem(sym)) {
+      msg += '. Alternatively, forcing filesystem support (-sFORCE_FILESYSTEM) can export this for you';
+    }
+    warnOnce(msg);
+  });
+
+  // Any symbol that is not included from the JS library is also (by definition)
+  // not exported on the Module object.
+  unexportedRuntimeSymbol(sym);
+}
+
+function unexportedRuntimeSymbol(sym) {
+  if (!Object.getOwnPropertyDescriptor(Module, sym)) {
+    Object.defineProperty(Module, sym, {
+      configurable: true,
+      get() {
+        var msg = `'${sym}' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the Emscripten FAQ)`;
+        if (isExportedByForceFilesystem(sym)) {
+          msg += '. Alternatively, forcing filesystem support (-sFORCE_FILESYSTEM) can export this for you';
+        }
+        abort(msg);
+      },
+    });
+  }
+}
+
 // end include: runtime_debug.js
+// include: runtime_stack_check.js
+const stackCookie1 = 0x02135467;
+const stackCookie2 = 0x89BACDFE;
+
+// Initializes the stack cookie. Called at the startup of main and at the startup of each thread in pthreads mode.
+function writeStackCookie() {
+  var max = _emscripten_stack_get_end();
+  assert((max & 3) == 0);
+  // If the stack ends at address zero we write our cookies 4 bytes into the
+  // stack.  This prevents interference with SAFE_HEAP and ASAN which also
+  // monitor writes to address zero.
+  if (max == 0) {
+    max += 4;
+  }
+  // The stack grow downwards towards _emscripten_stack_get_end.
+  // We write cookies to the final two words in the stack and detect if they are
+  // ever overwritten.
+  HEAPU32[((max)>>2)] = stackCookie1;
+  HEAPU32[(((max)+(4))>>2)] = stackCookie2;
+  // Also test the global address 0 for integrity.
+  HEAPU32[((0)>>2)] = 1668509029;
+}
+
+function u32ToHexString(num) {
+  return '0x' + (num >>> 0).toString(16).padStart(8, '0');
+}
+
+function checkStackCookie() {
+  if (ABORT) return;
+  var max = _emscripten_stack_get_end();
+  // See writeStackCookie().
+  if (max == 0) {
+    max += 4;
+  }
+  var val1 = HEAPU32[((max)>>2)];
+  var val2 = HEAPU32[(((max)+(4))>>2)];
+  if (val1 != stackCookie1 || val2 != stackCookie2) {
+    abort(`Stack overflow! Stack cookie has been overwritten at ${ptrToString(max)}, expected hex dwords ${u32ToHexString(stackCookie2)} and ${u32ToHexString(stackCookie1)}, but received ${u32ToHexString(val2)} ${u32ToHexString(val1)}`);
+  }
+  // Also test the global address 0 for integrity.
+  if (HEAPU32[((0)>>2)] != 0x63736d65 /* 'emsc' */) {
+    abort('Runtime error: The application has corrupted its heap memory area (address zero)!');
+  }
+}
+// end include: runtime_stack_check.js
 // Memory management
 
 var runtimeInitialized = false;
@@ -411,19 +685,26 @@ function updateMemoryViews() {
 // include: memoryprofiler.js
 // end include: memoryprofiler.js
 // end include: runtime_common.js
+assert(globalThis.Int32Array && globalThis.Float64Array && Int32Array.prototype.subarray && Int32Array.prototype.set,
+       'JS engine does not provide full typed array support');
+
 function preRun() {
   var preRun = Module['preRun'];
   if (preRun) {
     if (typeof preRun == 'function') preRun = [preRun];
     onPreRuns.push(...preRun);
   }
+  consumedModuleProp('preRun');
   // Begin ATPRERUNS hooks
   callRuntimeCallbacks(onPreRuns);
   // End ATPRERUNS hooks
 }
 
 function initRuntime() {
+  assert(!runtimeInitialized);
   runtimeInitialized = true;
+
+  checkStackCookie();
 
   // Begin ATINITS hooks
   if (!Module['noFSInit'] && !FS.initialized) FS.init();
@@ -436,15 +717,18 @@ TTY.init();
   FS.ignorePermissions = false;
   // End ATPOSTCTORS hooks
 
+  checkStackCookie();
 }
 
 function postRun() {
+  checkStackCookie();
 
   var postRun = Module['postRun'];
   if (postRun) {
     if (typeof postRun == 'function') postRun = [postRun];
     onPostRuns.push(...postRun);
   }
+  consumedModuleProp('postRun');
 
   // Begin ATPOSTRUNS hooks
   callRuntimeCallbacks(onPostRuns);
@@ -464,7 +748,9 @@ function abort(what) {
 
   ABORT = true;
 
-  what += '. Build with -sASSERTIONS for more info.';
+  if (what.search(/RuntimeError: [Uu]nreachable/) >= 0) {
+    what += '. "unreachable" may be due to ASYNCIFY_STACK_SIZE not being large enough (try increasing it)';
+  }
 
   // Use a wasm runtime error, because a JS error might be seen as a foreign
   // exception, which means we'd run destructors on it. We need the error to
@@ -486,6 +772,16 @@ function abort(what) {
   // in code paths apart from instantiation where an exception is expected
   // to be thrown when abort is called.
   throw e;
+}
+
+function createExportWrapper(name, func, nargs) {
+  assert(func);
+  return (...args) => {
+    assert(runtimeInitialized, `native function \`${name}\` called before runtime initialization`);
+    // Only assert for too many arguments. Too few can be valid since the missing arguments will be zero filled.
+    assert(args.length <= nargs, `native function \`${name}\` called with ${args.length} args but expects ${nargs}`);
+    return func(...args);
+  };
 }
 
 var wasmBinaryFile;
@@ -527,6 +823,10 @@ async function instantiateArrayBuffer(binaryFile, imports) {
   } catch (reason) {
     err(`failed to asynchronously prepare wasm: ${reason}`);
 
+    // Warn on some common problems.
+    if (isFileURI(binaryFile)) {
+      err(`warning: Loading from a file URI (${binaryFile}) is not supported in most browsers. See https://emscripten.org/docs/getting_started/FAQ.html#how-do-i-run-a-local-webserver-for-testing-why-does-my-program-stall-in-downloading-or-preparing`);
+    }
     abort(reason);
   }
 }
@@ -556,6 +856,10 @@ async function instantiateAsync(binary, binaryFile, imports) {
 }
 
 function getWasmImports() {
+  // instrumenting imports is used in asyncify in two ways: to add assertions
+  // that check for proper import use, and for JSPI we use them to set up
+  // the Promise API on the import side.
+  Asyncify.instrumentWasmImports(wasmImports);
   // prepare imports
   var imports = {
     'env': wasmImports,
@@ -573,6 +877,8 @@ async function createWasm() {
   function receiveInstance(instance) {
     wasmExports = instance.exports;
 
+    wasmExports = Asyncify.instrumentWasmExports(wasmExports);
+
     assignWasmExports(wasmExports);
 
     updateMemoryViews();
@@ -581,9 +887,15 @@ async function createWasm() {
   }
 
   // Prefer streaming instantiation if available.
+  // Async compilation can be confusing when an error on the page overwrites Module
+  // (for example, if the order of elements is wrong, and the one defining Module is
+  // later), so we save Module and check it later.
+  var trueModule = Module;
   function receiveInstantiationResult(result) {
     // 'result' is a ResultObject object which has both the module and instance.
     // receiveInstance() will swap in the exports (to Module.asm) so they can be called
+    assert(Module === trueModule, 'the Module object should not be replaced during async compilation - perhaps the order of HTML elements is wrong?');
+    trueModule = null;
     // TODO: Due to Closure regression https://github.com/google/closure-compiler/issues/3193, the above line no longer optimizes out down to the following line.
     // When the regression is fixed, can restore the above PTHREADS-enabled path.
     return receiveInstance(result['instance']);
@@ -600,7 +912,12 @@ async function createWasm() {
   var instantiateWasm = Module['instantiateWasm'];
   if (instantiateWasm) {
     return new Promise((resolve) => {
+      try {
         instantiateWasm(info, (inst) => resolve(receiveInstance(inst)));
+      } catch(e) {
+        err(`Module.instantiateWasm callback failed with error: ${e}`);
+        throw e;
+      }
     });
   }
 
@@ -623,8 +940,14 @@ async function createWasm() {
       }
     }
 
+  /** @type {!Int32Array} */
+  var HEAP32;
+
   /** @type {!Int8Array} */
   var HEAP8;
+
+  /** @type {!Uint32Array} */
+  var HEAPU32;
 
   var callRuntimeCallbacks = (callbacks) => {
       while (callbacks.length > 0) {
@@ -639,11 +962,55 @@ async function createWasm() {
   var addOnPreRun = (cb) => onPreRuns.push(cb);
 
 
+  var dynCalls = {
+  };
+  var dynCallLegacy = (sig, ptr, args) => {
+      sig = sig.replace(/p/g, 'i')
+      assert(sig in dynCalls, `bad function pointer type - sig is not in dynCalls: '${sig}'`);
+      if (args?.length) {
+        // j (64-bit integer) is fine, and is implemented as a BigInt. Without
+        // legalization, the number of parameters should match (j is not expanded
+        // into two i's).
+        assert(args.length === sig.length - 1);
+      } else {
+        assert(sig.length == 1);
+      }
+      var f = dynCalls[sig];
+      return f(ptr, ...args);
+    };
+  var dynCall = (sig, ptr, args = [], promising = false) => {
+      assert(ptr, `null function pointer in dynCall`);
+      assert(!promising, 'async dynCall is not supported in this mode')
+      var rtn = dynCallLegacy(sig, ptr, args);
+  
+      function convert(rtn) {
+        return rtn;
+      }
+  
+      return convert(rtn);
+    };
+
   var noExitRuntime = true;
+
+  function ptrToString(ptr) {
+      assert(typeof ptr === 'number', `ptrToString expects a number, got ${typeof ptr}`);
+      // Convert to 32-bit unsigned value
+      ptr >>>= 0;
+      return '0x' + ptr.toString(16).padStart(8, '0');
+    }
 
   var stackRestore = (val) => __emscripten_stack_restore(val);
 
   var stackSave = () => _emscripten_stack_get_current();
+
+  var warnOnce = (text) => {
+      warnOnce.shown ||= {};
+      if (!warnOnce.shown[text]) {
+        warnOnce.shown[text] = 1;
+        if (ENVIRONMENT_IS_NODE) text = 'warning: ' + text;
+        err(text);
+      }
+    };
 
   
 
@@ -667,6 +1034,7 @@ async function createWasm() {
       while (heapOrArray[idx] && !(idx >= maxIdx)) ++idx;
       return idx;
     };
+  
   
     /**
    * Given a pointer 'idx' to a null-terminated UTF8-encoded string in the given
@@ -700,6 +1068,7 @@ async function createWasm() {
         if ((u0 & 0xF0) == 0xE0) {
           u0 = ((u0 & 15) << 12) | (u1 << 6) | u2;
         } else {
+          if ((u0 & 0xF8) != 0xF0) warnOnce(`Invalid UTF-8 leading byte ${ptrToString(u0)} encountered when deserializing a UTF-8 string in wasm memory to a JS string!`);
           u0 = ((u0 & 7) << 18) | (u1 << 12) | (u2 << 6) | (heapOrArray[idx++] & 63);
         }
   
@@ -730,14 +1099,13 @@ async function createWasm() {
    * @return {string}
    */
   var UTF8ToString = (ptr, maxBytesToRead, ignoreNul) => {
+      assert(typeof ptr == 'number', `UTF8ToString expects a number (got ${typeof ptr})`);
       return ptr ? UTF8ArrayToString(HEAPU8, ptr, maxBytesToRead, ignoreNul) : '';
     };
   var ___assert_fail = (condition, filename, line, func) =>
       abort(`Assertion failed: ${UTF8ToString(condition)}, at: ` + [filename ? UTF8ToString(filename) : 'unknown filename', line, func ? UTF8ToString(func) : 'unknown function']);
 
   
-  /** @type {!Uint32Array} */
-  var HEAPU32;
   class ExceptionInfo {
       // excPtr - Thrown object pointer to wrap. Metadata pointer is calculated from it.
       constructor(excPtr) {
@@ -798,7 +1166,7 @@ async function createWasm() {
   var uncaughtExceptionCount = 0;
   
   var __Unwind_RaiseException = (ex) => {
-      abort()
+      assert(false, 'Exception thrown, but exception catching is not enabled. Compile with -sNO_DISABLE_EXCEPTION_CATCHING or -sEXCEPTION_CATCHING_ALLOWED=[..] to catch.');
     };
   var ___cxa_throw = (ptr, type, destructor) => {
       var info = new ExceptionInfo(ptr);
@@ -962,6 +1330,7 @@ var lengthBytesUTF8 = (str) => {
   };
 
 var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
+    assert(typeof str === 'string', `stringToUTF8Array expects a string (got ${typeof str})`);
     // Parameter maxBytesToWrite is not optional. Negative values, 0, null,
     // undefined and false each don't write out any bytes.
     if (!(maxBytesToWrite > 0))
@@ -988,6 +1357,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         heap[outIdx++] = 0x80 | (u & 63);
       } else {
         if (outIdx + 3 >= endIdx) break;
+        if (u > 0x10FFFF) warnOnce(`Invalid Unicode code point ${ptrToString(u)} encountered when serializing a JS string to a UTF-8 string in wasm memory! (Valid unicode code points should be in range 0-0x10FFFF).`);
         heap[outIdx++] = 0xF0 | (u >> 18);
         heap[outIdx++] = 0x80 | ((u >> 12) & 63);
         heap[outIdx++] = 0x80 | ((u >> 6) & 63);
@@ -1203,7 +1573,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
   
   var mmapAlloc = (size) => {
-      abort();
+      abort('internal error: mmapAlloc called but `emscripten_builtin_memalign` native symbol not exported');
     };
   
   var MEMFS = {
@@ -1294,6 +1664,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return node;
       },
   getFileDataAsTypedArray(node) {
+        assert(FS.isFile(node.mode), 'getFileDataAsTypedArray called on non-file');
         return node.contents.subarray(0, node.usedBytes); // Make sure to not return excess unused bytes.
       },
   expandFileStorage(node, newCapacity) {
@@ -1358,14 +1729,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           }
         },
   lookup(parent, name) {
-          // This error may happen quite a bit. To avoid overhead we reuse it (and
-          // suffer a lack of stack info).
-          if (!MEMFS.doesNotExistError) {
-            MEMFS.doesNotExistError = new FS.ErrnoError(44);
-            /** @suppress {checkTypes} */
-            MEMFS.doesNotExistError.stack = '<generic error, no stack>';
-          }
-          throw MEMFS.doesNotExistError;
+          throw new FS.ErrnoError(44);
         },
   mknod(parent, name, mode, dev) {
           return MEMFS.createNode(parent, name, mode, dev);
@@ -1422,10 +1786,12 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           var contents = stream.node.contents;
           if (position >= stream.node.usedBytes) return 0;
           var size = Math.min(stream.node.usedBytes - position, length);
+          assert(size >= 0);
           buffer.set(contents.subarray(position, position + size), offset);
           return size;
         },
   write(stream, buffer, offset, length, position, canOwn) {
+          assert(buffer.subarray, 'FS.write expects a TypedArray');
           // If the buffer is located in main memory (HEAP), and if
           // memory can grow, we can't hold on to references of the
           // memory buffer, as they may get invalidated. That means we
@@ -1439,6 +1805,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           node.mtime = node.ctime = Date.now();
   
           if (canOwn) {
+            assert(!position, 'canOwn must imply no weird position inside the file');
             node.contents = buffer.subarray(offset, offset + length);
             node.usedBytes = length;
           } else if (!node.usedBytes && !position) { // If this is a simple first write to an empty file, do a fast set since we don't need to care about old data.
@@ -1542,8 +1909,137 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     };
   
   
+  
+  
+  var strError = (errno) => UTF8ToString(_strerror(errno));
+  
+  var ERRNO_CODES = {
+      'EPERM': 63,
+      'ENOENT': 44,
+      'ESRCH': 71,
+      'EINTR': 27,
+      'EIO': 29,
+      'ENXIO': 60,
+      'E2BIG': 1,
+      'ENOEXEC': 45,
+      'EBADF': 8,
+      'ECHILD': 12,
+      'EAGAIN': 6,
+      'EWOULDBLOCK': 6,
+      'ENOMEM': 48,
+      'EACCES': 2,
+      'EFAULT': 21,
+      'ENOTBLK': 105,
+      'EBUSY': 10,
+      'EEXIST': 20,
+      'EXDEV': 75,
+      'ENODEV': 43,
+      'ENOTDIR': 54,
+      'EISDIR': 31,
+      'EINVAL': 28,
+      'ENFILE': 41,
+      'EMFILE': 33,
+      'ENOTTY': 59,
+      'ETXTBSY': 74,
+      'EFBIG': 22,
+      'ENOSPC': 51,
+      'ESPIPE': 70,
+      'EROFS': 69,
+      'EMLINK': 34,
+      'EPIPE': 64,
+      'EDOM': 18,
+      'ERANGE': 68,
+      'ENOMSG': 49,
+      'EIDRM': 24,
+      'ECHRNG': 106,
+      'EL2NSYNC': 156,
+      'EL3HLT': 107,
+      'EL3RST': 108,
+      'ELNRNG': 109,
+      'EUNATCH': 110,
+      'ENOCSI': 111,
+      'EL2HLT': 112,
+      'EDEADLK': 16,
+      'ENOLCK': 46,
+      'EBADE': 113,
+      'EBADR': 114,
+      'EXFULL': 115,
+      'ENOANO': 104,
+      'EBADRQC': 103,
+      'EBADSLT': 102,
+      'EDEADLOCK': 16,
+      'EBFONT': 101,
+      'ENOSTR': 100,
+      'ENODATA': 116,
+      'ETIME': 117,
+      'ENOSR': 118,
+      'ENONET': 119,
+      'ENOPKG': 120,
+      'EREMOTE': 121,
+      'ENOLINK': 47,
+      'EADV': 122,
+      'ESRMNT': 123,
+      'ECOMM': 124,
+      'EPROTO': 65,
+      'EMULTIHOP': 36,
+      'EDOTDOT': 125,
+      'EBADMSG': 9,
+      'ENOTUNIQ': 126,
+      'EBADFD': 127,
+      'EREMCHG': 128,
+      'ELIBACC': 129,
+      'ELIBBAD': 130,
+      'ELIBSCN': 131,
+      'ELIBMAX': 132,
+      'ELIBEXEC': 133,
+      'ENOSYS': 52,
+      'ENOTEMPTY': 55,
+      'ENAMETOOLONG': 37,
+      'ELOOP': 32,
+      'EOPNOTSUPP': 138,
+      'EPFNOSUPPORT': 139,
+      'ECONNRESET': 15,
+      'ENOBUFS': 42,
+      'EAFNOSUPPORT': 5,
+      'EPROTOTYPE': 67,
+      'ENOTSOCK': 57,
+      'ENOPROTOOPT': 50,
+      'ESHUTDOWN': 140,
+      'ECONNREFUSED': 14,
+      'EADDRINUSE': 3,
+      'ECONNABORTED': 13,
+      'ENETUNREACH': 40,
+      'ENETDOWN': 38,
+      'ETIMEDOUT': 73,
+      'EHOSTDOWN': 142,
+      'EHOSTUNREACH': 23,
+      'EINPROGRESS': 26,
+      'EALREADY': 7,
+      'EDESTADDRREQ': 17,
+      'EMSGSIZE': 35,
+      'EPROTONOSUPPORT': 66,
+      'ESOCKTNOSUPPORT': 137,
+      'EADDRNOTAVAIL': 4,
+      'ENETRESET': 39,
+      'EISCONN': 30,
+      'ENOTCONN': 53,
+      'ETOOMANYREFS': 141,
+      'EUSERS': 136,
+      'EDQUOT': 19,
+      'ESTALE': 72,
+      'ENOTSUP': 138,
+      'ENOMEDIUM': 148,
+      'EILSEQ': 25,
+      'EOVERFLOW': 61,
+      'ECANCELED': 11,
+      'ENOTRECOVERABLE': 56,
+      'EOWNERDEAD': 62,
+      'ESTRPIPE': 135,
+    };
+  
   var asyncLoad = async (url) => {
       var arrayBuffer = await readAsync(url);
+      assert(arrayBuffer, `Loading data file "${url}" failed (no arrayBuffer).`);
       return new Uint8Array(arrayBuffer);
     };
   
@@ -1551,7 +2047,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var FS_createDataFile = (...args) => FS.createDataFile(...args);
   
   var getUniqueRunDependency = (id) => {
-      return id;
+      var orig = id;
+      while (1) {
+        if (!runDependencyTracking[id]) return id;
+        id = orig + Math.random();
+      }
     };
   
   var dependenciesPromise = null;
@@ -1560,15 +2060,29 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
   
   var dependenciesPromiseResolve = null;
+  
+  var runDependencyTracking = {
+  };
+  
+  var runDependencyWatcher = null;
   var removeRunDependency = (id) => {
       runDependencies--;
   
       Module['monitorRunDependencies']?.(runDependencies);
   
+      assert(id, 'removeRunDependency requires an ID');
+      assert(runDependencyTracking[id]);
+      delete runDependencyTracking[id];
       if (!runDependencies) {
+        if (runDependencyWatcher !== null) {
+          clearInterval(runDependencyWatcher);
+          runDependencyWatcher = null;
+        }
         dependenciesPromiseResolve();
       }
     };
+  
+  
   
   
   var addRunDependency = (id) => {
@@ -1579,6 +2093,33 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
       Module['monitorRunDependencies']?.(runDependencies);
   
+      assert(id, 'addRunDependency requires an ID')
+      assert(!runDependencyTracking[id]);
+      runDependencyTracking[id] = 1;
+      if (!runDependencyWatcher && globalThis.setInterval) {
+        // Check for missing dependencies every few seconds
+        runDependencyWatcher = setInterval(() => {
+          if (ABORT) {
+            clearInterval(runDependencyWatcher);
+            runDependencyWatcher = null;
+            return;
+          }
+          var shown = false;
+          for (var dep in runDependencyTracking) {
+            if (!shown) {
+              shown = true;
+              err('still waiting on run dependencies:');
+            }
+            err(`dependency: ${dep}`);
+          }
+          if (shown) {
+            err('(end of list)');
+          }
+        }, 10000);
+        // Prevent this timer from keeping the runtime alive if nothing
+        // else is.
+        runDependencyWatcher.unref?.()
+      }
     };
   
   
@@ -1589,6 +2130,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
       for (var plugin of preloadPlugins) {
         if (plugin['canHandle'](fullname)) {
+          assert(plugin['handle'].constructor.name === 'AsyncFunction', 'Filesystem plugin handlers must be async functions (See #24914)')
           return plugin['handle'](byteArray, fullname);
         }
       }
@@ -1635,7 +2177,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   ignorePermissions:true,
   filesystems:null,
   syncFSRequests:0,
-  ErrnoError:class {
+  ErrnoError:class extends Error {
         name = 'ErrnoError';
         // We set the `name` property to be able to identify `FS.ErrnoError`
         // - the `name` is a standard ECMA-262 property of error objects. Kind of good to have it anyway.
@@ -1644,7 +2186,14 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         // the test `err instanceof FS.ErrnoError` won't detect an error coming from another filesystem, causing bugs.
         // we'll use the reliable test `err.name == "ErrnoError"` instead
         constructor(errno) {
+          super(runtimeInitialized ? strError(errno) : '');
           this.errno = errno;
+          for (var key in ERRNO_CODES) {
+            if (ERRNO_CODES[key] === errno) {
+              this.code = key;
+              break;
+            }
+          }
         }
       },
   FSStream:class {
@@ -1892,6 +2441,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return FS.lookup(parent, name);
       },
   createNode(parent, name, mode, rdev) {
+        assert(typeof parent == 'object')
         var node = new FS.FSNode(parent, name, mode, rdev);
   
         FS.hashAddNode(node);
@@ -2033,6 +2583,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       },
   getStream:(fd) => FS.streams[fd],
   createStream(stream, fd = -1) {
+        assert(fd >= -1);
   
         // clone it, so we can return an instance of FSStream
         stream = Object.assign(new FS.FSStream(), stream);
@@ -2114,6 +2665,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         var completed = 0;
   
         function doCallback(errCode) {
+          assert(FS.syncFSRequests > 0);
           FS.syncFSRequests--;
           return callback(errCode);
         }
@@ -2141,6 +2693,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
       },
   mount(type, opts, mountpoint) {
+        if (typeof type == 'string') {
+          // The filesystem was not included, and instead we have an error
+          // message stored in the variable.
+          throw type;
+        }
         var root = mountpoint === '/';
         var pseudo = !mountpoint;
         var node;
@@ -2217,6 +2774,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
         // remove this mount from the child mounts
         var idx = node.mount.mounts.indexOf(mount);
+        assert(idx !== -1);
         node.mount.mounts.splice(idx, 1);
       },
   lookup(parent, name) {
@@ -2728,6 +3286,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return stream.position;
       },
   read(stream, buffer, offset, length, position) {
+        assert(offset >= 0);
         if (length < 0 || position < 0) {
           throw new FS.ErrnoError(28);
         }
@@ -2754,6 +3313,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return bytesRead;
       },
   write(stream, buffer, offset, length, position, canOwn) {
+        assert(offset >= 0);
+        assert(buffer.subarray, 'FS.write expects a TypedArray');
         if (length < 0 || position < 0) {
           throw new FS.ErrnoError(28);
         }
@@ -2807,6 +3368,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         return stream.stream_ops.mmap(stream, length, position, prot, flags);
       },
   msync(stream, buffer, offset, length, mmapFlags) {
+        assert(offset >= 0);
         if (!stream.stream_ops.msync) {
           return 0;
         }
@@ -2960,6 +3522,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         var stdin = FS.open('/dev/stdin', 0);
         var stdout = FS.open('/dev/stdout', 1);
         var stderr = FS.open('/dev/stderr', 1);
+        assert(stdin.fd === 0, `invalid handle for stdin (${stdin.fd})`);
+        assert(stdout.fd === 1, `invalid handle for stdout (${stdout.fd})`);
+        assert(stderr.fd === 2, `invalid handle for stderr (${stderr.fd})`);
       },
   staticInit() {
         FS.nameTable = new Array(4096);
@@ -2975,6 +3540,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         };
       },
   init(input, output, error) {
+        assert(!FS.initialized, 'FS.init was previously called. If you want to initialize later with custom parameters, remove any earlier calls (note that one is automatically added to the generated code)');
         FS.initialized = true;
   
         // Allow Module.stdin etc. to provide defaults, if none explicitly passed to us here
@@ -2987,6 +3553,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   quit() {
         FS.initialized = false;
         // force-flush all streams, so we get musl std streams printed out
+        _fflush(0);
         // close all of our streams
         for (var stream of FS.streams) {
           if (stream) {
@@ -3264,6 +3831,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           if (position >= contents.length)
             return 0;
           var size = Math.min(contents.length - position, length);
+          assert(size >= 0);
           if (contents.slice) { // normal array
             for (var i = 0; i < size; i++) {
               buffer[offset + i] = contents[position + i];
@@ -3297,8 +3865,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
   
   
-  /** @type {!Int32Array} */
-  var HEAP32;
   
   
   /** not-@type {!BigInt64Array} */
@@ -3384,6 +3950,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   try {
   
       path = SYSCALLS.getStr(path);
+      assert(!flags || flags == 512);
       path = SYSCALLS.calculateAt(dirfd, path);
       if (amode & ~7) {
         // need a valid mode
@@ -3410,6 +3977,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
 
   var syscallGetVarargI = () => {
+      assert(SYSCALLS.varargs != undefined);
       // the `+` prepended here is necessary to convince the JSCompiler that varargs is indeed a number.
       var ret = HEAP32[((+SYSCALLS.varargs)>>2)];
       SYSCALLS.varargs += 4;
@@ -3476,6 +4044,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
   
   var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
+      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8 requires a third parameter that specifies the length of the output buffer');
       return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
     };
   function ___syscall_getcwd(buf, size) {
@@ -3648,8 +4217,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
 
   var __abort_js = () =>
-      abort('');
+      abort('native code called abort()');
 
+  
   
   
   var __tzset_js = (timezone, daylight, std_name, dst_name) => {
@@ -3691,6 +4261,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
       var winterName = extractZone(winterOffset);
       var summerName = extractZone(summerOffset);
+      assert(winterName);
+      assert(summerName);
+      assert(lengthBytesUTF8(winterName) <= 16, `timezone name truncated to fit in TZNAME_MAX (${winterName})`);
+      assert(lengthBytesUTF8(summerName) <= 16, `timezone name truncated to fit in TZNAME_MAX (${summerName})`);
       if (summerOffset < winterOffset) {
         // Northern hemisphere
         stringToUTF8(winterName, std_name, 17);
@@ -3746,11 +4320,20 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var HEAPF64;
   
   var readEmAsmArgs = (sigPtr, buf) => {
+      // Nobody should have mutated _readEmAsmArgsArray underneath us to be something else than an array.
+      assert(Array.isArray(readEmAsmArgsArray));
+      // The input buffer is allocated on the stack, so it must be stack-aligned.
+      assert(buf % 16 == 0);
       readEmAsmArgsArray.length = 0;
       var ch;
       // Most arguments are i32s, so shift the buffer pointer so it is a plain
       // index into HEAP32.
       while (ch = HEAPU8[sigPtr++]) {
+        var chr = String.fromCharCode(ch);
+        var validChars = ['d', 'f', 'i', 'p'];
+        // In WASM_BIGINT mode we support passing i64 values as bigint.
+        validChars.push('j');
+        assert(validChars.includes(chr), `Invalid character ${ch}("${chr}") in readEmAsmArgs! Use only [${validChars}], and do not specify "v" for void return argument.`);
         // Floats are always passed as doubles, so all types except for 'i'
         // are 8 bytes and require alignment.
         var wide = (ch != 105);
@@ -3770,6 +4353,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     };
   var runEmAsmFunction = (code, sigPtr, argbuf) => {
       var args = readEmAsmArgs(sigPtr, argbuf);
+      assert(ASM_CONSTS.hasOwnProperty(code), `No EM_ASM constant found at address ${code}.  The loaded WebAssembly file is likely out of sync with the generated JavaScript.`);
       return ASM_CONSTS[code](...args);
     };
   var _emscripten_asm_const_int = (code, sigPtr, argbuf) => {
@@ -3881,6 +4465,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       },
   registerOrRemoveHandler(eventHandler) {
         if (!eventHandler.target) {
+          err('registerOrRemoveHandler: the target element for event handler registration does not exist, when processing the following event handler registration:');
+          console.dir(eventHandler);
           return -4;
         }
         if (eventHandler.callbackfunc) {
@@ -3961,6 +4547,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       stringToUTF8(e.mapping, eventStruct + 1176, 64);
     };
   var _emscripten_get_gamepad_status = (index, gamepadState) => {
+      assert(JSEvents.lastGamepadState, 'emscripten_get_gamepad_status() called before emscripten_sample_gamepad_data()');
       // INVALID_PARAM is returned on a Gamepad index that never was there.
       if (index < 0 || index >= JSEvents.lastGamepadState.length) return -5;
   
@@ -3976,6 +4563,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
 
   var _emscripten_get_num_gamepads = () => {
+      assert(JSEvents.lastGamepadState, 'emscripten_get_num_gamepads() called before emscripten_sample_gamepad_data()');
       // N.B. Do not call emscripten_get_num_gamepads() unless having first called emscripten_sample_gamepad_data(), and that has returned EMSCRIPTEN_RESULT_SUCCESS.
       // Otherwise the following line will throw an exception.
       return JSEvents.lastGamepadState.length;
@@ -4656,10 +5244,22 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _emscripten_glGetAttribLocation = (program, name) =>
       GLctx.getAttribLocation(GL.programs[program], UTF8ToString(name));
 
+  
+  var readI53FromI64 = (ptr) => {
+      return HEAPU32[((ptr)>>2)] + HEAP32[(((ptr)+(4))>>2)] * 4294967296;
+    };
+  
+  var readI53FromU64 = (ptr) => {
+      return HEAPU32[((ptr)>>2)] + HEAPU32[(((ptr)+(4))>>2)] * 4294967296;
+    };
+  
   var writeI53ToI64 = (ptr, num) => {
       HEAPU32[((ptr)>>2)] = num;
       var lower = HEAPU32[((ptr)>>2)];
       HEAPU32[(((ptr)+(4))>>2)] = (num - lower)/4294967296;
+      var deserialized = (num >= 0) ? readI53FromU64(ptr) : readI53FromI64(ptr);
+      var offset = ((ptr)>>2);
+      if (deserialized != num) warnOnce(`writeI53ToI64() out of range: serialized JS Number ${num} to Wasm heap as bytes lo=${ptrToString(HEAPU32[offset])}, hi=${ptrToString(HEAPU32[offset+1])}, which deserializes back to ${deserialized} instead!`);
     };
   
   
@@ -5882,6 +6482,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       2147483648;
   
   var alignMemory = (size, alignment) => {
+      assert(alignment, 'alignment argument is required');
       return Math.ceil(size / alignment) * alignment;
     };
   
@@ -5894,6 +6495,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         updateMemoryViews();
         return 1 /*success*/;
       } catch(e) {
+        err(`growMemory: Attempted to grow heap from ${oldHeapSize} bytes to ${size} bytes, but got error: ${e}`);
       }
       // implicit 0 return to save code size (caller will cast 'undefined' into 0
       // anyhow)
@@ -5905,6 +6507,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       requestedSize >>>= 0;
       // With multithreaded builds, races can happen (another thread might increase the size
       // in between), so return a failure, and let the caller retry.
+      assert(requestedSize > oldSize);
   
       // Memory resize rules:
       // 1.  Always increase heap size to at least the requested size, rounded up
@@ -5927,6 +6530,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       // (the wasm binary specifies it, so if we tried, we'd fail anyhow).
       var maxHeapSize = getHeapMax();
       if (requestedSize > maxHeapSize) {
+        err(`Cannot enlarge memory, requested ${requestedSize} bytes, but the limit is ${maxHeapSize} bytes!`);
         return false;
       }
   
@@ -5946,6 +6550,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           return true;
         }
       }
+      err(`Failed to grow the heap from ${oldSize} bytes to ${newSize} bytes, not enough memory!`);
       return false;
     };
 
@@ -5955,6 +6560,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (navigator.getGamepads) return (JSEvents.lastGamepadState = navigator.getGamepads())
           ? 0 : -1;
       } catch(e) {
+        err(`navigator.getGamepads() exists, but failed to execute with exception ${e}. Disabling Gamepad access.`);
         navigator.getGamepads = null; // Disable getGamepads() so that it won't be attempted to be used again.
       }
       return -1;
@@ -5975,6 +6581,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
   
   var fillMouseEventData = (eventStruct, e, target) => {
+      assert(eventStruct % 4 == 0);
       HEAPF64[((eventStruct)>>3)] = e.timeStamp;
       var idx = ((eventStruct)>>2);
       HEAP32[idx + 2] = e.screenX;
@@ -5997,18 +6604,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     };
   
   
-  
-  var wasmTableMirror = [];
-  
-  
-  var getWasmTableEntry = (funcPtr) => {
-      var func = wasmTableMirror[funcPtr];
-      if (!func) {
-        /** @suppress {checkTypes} */
-        wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
-      }
-      return func;
-    };
   var registerMouseEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 64;
       JSEvents.mouseEvent ||= _malloc(eventSize);
@@ -6018,7 +6613,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         // TODO: Make this access thread safe, or this could update live while app is reading it.
         fillMouseEventData(JSEvents.mouseEvent, e, target);
   
-        if (getWasmTableEntry(callbackfunc)(eventTypeId, JSEvents.mouseEvent, userData)) e.preventDefault();
+        if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, JSEvents.mouseEvent, userData)) e.preventDefault();
       };
   
       var eventHandler = {
@@ -6070,7 +6665,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
     };
   
-  
   var registerFullscreenChangeEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 276;
       JSEvents.fullscreenChangeEvent ||= _malloc(eventSize);
@@ -6079,7 +6673,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         var fullscreenChangeEvent = JSEvents.fullscreenChangeEvent;
         fillFullscreenChangeEventData(fullscreenChangeEvent);
   
-        if (getWasmTableEntry(callbackfunc)(eventTypeId, fullscreenChangeEvent, userData)) e.preventDefault();
+        if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, fullscreenChangeEvent, userData)) e.preventDefault();
       };
   
       var eventHandler = {
@@ -6108,7 +6702,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
   
   
-  
   var registerGamepadEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 1240;
       JSEvents.gamepadEvent ||= _malloc(eventSize);
@@ -6117,7 +6710,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         var gamepadEvent = JSEvents.gamepadEvent;
         fillGamepadEventData(gamepadEvent, e['gamepad']);
   
-        if (getWasmTableEntry(callbackfunc)(eventTypeId, gamepadEvent, userData)) e.preventDefault();
+        if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, gamepadEvent, userData)) e.preventDefault();
       };
   
       var eventHandler = {
@@ -6154,6 +6747,12 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       if (e instanceof ExitStatus || e == 'unwind') {
         return EXITSTATUS;
       }
+      checkStackCookie();
+      if (e instanceof WebAssembly.RuntimeError) {
+        if (_emscripten_stack_get_current() <= 0) {
+          err('Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 65536)');
+        }
+      }
       quit_(1, e);
     };
   
@@ -6168,9 +6767,19 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
       quit_(code, new ExitStatus(code));
     };
+  
+  
   /** @param {boolean|number=} implicit */
   var exitJS = (status, implicit) => {
       EXITSTATUS = status;
+  
+      checkUnflushedContent();
+  
+      // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
+      if (keepRuntimeAlive() && !implicit) {
+        var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
+        err(msg);
+      }
   
       _proc_exit(status);
     };
@@ -6188,6 +6797,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
     };
   var callUserCallback = (func) => {
       if (ABORT) {
+        err('user callback triggered after runtime exited or application aborted.  Ignoring.');
         return;
       }
       try {
@@ -6204,6 +6814,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       MainLoop.timingValue = value;
   
       if (!MainLoop.func) {
+        err('emscripten_set_main_loop_timing: Cannot set timing mode for main loop since a main loop does not exist! Call emscripten_set_main_loop first to set one up.');
         return 1; // Return non-zero on failure, can't set timing mode when there is no main loop.
       }
   
@@ -6217,6 +6828,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           MainLoop.requestAnimationFrame(MainLoop.runner);
         };
       } else {
+        assert(mode == 2);
         if (!MainLoop.setImmediate) {
           if (globalThis.scheduler) {
             // Some modern browsers implement scheduler.postTask, but not all.
@@ -6312,6 +6924,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         for (var post of MainLoop.postMainLoop) {
           post();
         }
+        checkStackCookie();
       },
   nextRAF:0,
   fakeRequestAnimationFrame(func) {
@@ -6344,6 +6957,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
    * @param {boolean=} noSetTiming
    */
   var setMainLoop = (iterFunc, fps, simulateInfiniteLoop, arg, noSetTiming) => {
+      assert(!MainLoop.func, 'emscripten_set_main_loop: there can only be one main loop function at once')
       MainLoop.func = iterFunc;
       MainLoop.arg = arg;
   
@@ -6396,6 +7010,9 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           return;
         } else if (MainLoop.timingMode == 0) {
           MainLoop.tickStartTime = _emscripten_get_now();
+          if (Module['ctx']) {
+            warnOnce('Looks like you are rendering without using requestAnimationFrame for the main loop. You should use 0 for the frame rate in emscripten_set_main_loop in order to use requestAnimationFrame, as that can greatly improve your frame rates!');
+          }
         }
   
         MainLoop.runIter(iterFunc);
@@ -6421,9 +7038,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         throw 'unwind';
       }
     };
-  
   var _emscripten_set_main_loop = (func, fps, simulateInfiniteLoop) => {
-      var iterFunc = getWasmTableEntry(func);
+      var iterFunc = (() => dynCall_v(func));
       setMainLoop(iterFunc, fps, simulateInfiniteLoop);
     };
 
@@ -6446,7 +7062,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       stringToUTF8(id, eventStruct + 129, 128);
     };
   
-  
   var registerPointerlockChangeEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 257;
       JSEvents.pointerlockChangeEvent ||= _malloc(eventSize);
@@ -6455,7 +7070,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         var pointerlockChangeEvent = JSEvents.pointerlockChangeEvent;
         fillPointerlockChangeEventData(pointerlockChangeEvent);
   
-        if (getWasmTableEntry(callbackfunc)(eventTypeId, pointerlockChangeEvent, userData)) e.preventDefault();
+        if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, pointerlockChangeEvent, userData)) e.preventDefault();
       };
   
       var eventHandler = {
@@ -6480,7 +7095,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return registerPointerlockChangeEventCallback(target, userData, useCapture, callbackfunc, 20, 'pointerlockchange', targetThread);
     };
 
-  
   
   
   
@@ -6513,7 +7127,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         HEAP32[(((uiEvent)+(24))>>2)] = outerHeight;
         HEAP32[(((uiEvent)+(28))>>2)] = pageXOffset | 0; // scroll offsets are float
         HEAP32[(((uiEvent)+(32))>>2)] = pageYOffset | 0;
-        if (getWasmTableEntry(callbackfunc)(eventTypeId, uiEvent, userData)) e.preventDefault();
+        if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, uiEvent, userData)) e.preventDefault();
       };
   
       var eventHandler = {
@@ -6536,7 +7150,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
   
   
-  
   var registerTouchEventCallback = (target, userData, useCapture, callbackfunc, eventTypeId, eventTypeString, targetThread) => {
       var eventSize = 1552;
       JSEvents.touchEvent ||= _malloc(eventSize);
@@ -6544,6 +7157,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       target = findEventTarget(target);
   
       var touchEventHandlerFunc = (e) => {
+        assert(e);
         var t, touches = {}, et = e.touches;
         // To ease marshalling different kinds of touches that browser reports (all touches are listed in e.touches,
         // only changed touches in e.changedTouches, and touches on target at a.targetTouches), mark a boolean in
@@ -6596,7 +7210,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
         HEAP32[(((touchEvent)+(8))>>2)] = numTouches;
   
-        if (getWasmTableEntry(callbackfunc)(eventTypeId, touchEvent, userData)) e.preventDefault();
+        if (((a1, a2, a3) => dynCall_iiii(callbackfunc, a1, a2, a3))(eventTypeId, touchEvent, userData)) e.preventDefault();
       };
   
       var eventHandler = {
@@ -6634,14 +7248,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }, timeout);
     };
   
-  var warnOnce = (text) => {
-      warnOnce.shown ||= {};
-      if (!warnOnce.shown[text]) {
-        warnOnce.shown[text] = 1;
-        if (ENVIRONMENT_IS_NODE) text = 'warning: ' + text;
-        err(text);
-      }
-    };
   
   
   
@@ -6682,6 +7288,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           return new Promise((resolve, reject) => {
             var img = new Image();
             img.onload = () => {
+              assert(img.complete, `Image ${name} could not be decoded`);
               var canvas = /** @type {!HTMLCanvasElement} */ (document.createElement('canvas'));
               canvas.width = img.width;
               canvas.height = img.height;
@@ -6814,6 +7421,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (!ctx) return null;
   
         if (setInModule) {
+          if (!useWebGL) assert(typeof GLctx == 'undefined', 'cannot set in module if GLctx is used, but we are a non-GL context that would replace it');
           Module['ctx'] = ctx;
           if (useWebGL) GL.makeContextCurrent(contextHandle);
           Browser.useWebGL = useWebGL;
@@ -7424,7 +8032,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
   
   
-  
   var GLFW = {
   WindowFromId:(id) => {
         if (id <= 0 || !GLFW.windows) return null;
@@ -7622,7 +8229,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         var charCode = event.charCode;
         if (charCode == 0 || (charCode >= 0x00 && charCode <= 0x1F)) return;
   
-        getWasmTableEntry(GLFW.active.charFunc)(GLFW.active.id, charCode);
+        ((a1, a2) => dynCall_vii(GLFW.active.charFunc, a1, a2))(GLFW.active.id, charCode);
       },
   onKeyChanged:(keyCode, status) => {
         if (!GLFW.active) return;
@@ -7636,7 +8243,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
         if (GLFW.active.keyFunc) {
           if (repeat) status = 2; // GLFW_REPEAT
-          getWasmTableEntry(GLFW.active.keyFunc)(GLFW.active.id, key, keyCode, status, GLFW.getModBits(GLFW.active));
+          ((a1, a2, a3, a4, a5) => dynCall_viiiii(GLFW.active.keyFunc, a1, a2, a3, a4, a5))(GLFW.active.id, key, keyCode, status, GLFW.getModBits(GLFW.active));
         }
       },
   onGamepadConnected:(event) => {
@@ -7699,7 +8306,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (event.target != Browser.getCanvas() || !GLFW.active.cursorPosFunc) return;
   
         if (GLFW.active.cursorPosFunc) {
-          getWasmTableEntry(GLFW.active.cursorPosFunc)(GLFW.active.id, Browser.mouseX, Browser.mouseY);
+          ((a1, a2, a3) => dynCall_vidd(GLFW.active.cursorPosFunc, a1, a2, a3))(GLFW.active.id, Browser.mouseX, Browser.mouseY);
         }
       },
   DOMToGLFWMouseButton:(event) => {
@@ -7721,7 +8328,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (event.target != Browser.getCanvas()) return;
   
         if (GLFW.active.cursorEnterFunc) {
-          getWasmTableEntry(GLFW.active.cursorEnterFunc)(GLFW.active.id, 1);
+          ((a1, a2) => dynCall_vii(GLFW.active.cursorEnterFunc, a1, a2))(GLFW.active.id, 1);
         }
       },
   onMouseleave:(event) => {
@@ -7730,7 +8337,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (event.target != Browser.getCanvas()) return;
   
         if (GLFW.active.cursorEnterFunc) {
-          getWasmTableEntry(GLFW.active.cursorEnterFunc)(GLFW.active.id, 0);
+          ((a1, a2) => dynCall_vii(GLFW.active.cursorEnterFunc, a1, a2))(GLFW.active.id, 0);
         }
       },
   onMouseButtonChanged:(event, status) => {
@@ -7793,7 +8400,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
         // Send mouse event to GLFW.
         if (GLFW.active.mouseButtonFunc) {
-          getWasmTableEntry(GLFW.active.mouseButtonFunc)(GLFW.active.id, eventButton, status, GLFW.getModBits(GLFW.active));
+          ((a1, a2, a3, a4) => dynCall_viiii(GLFW.active.mouseButtonFunc, a1, a2, a3, a4))(GLFW.active.id, eventButton, status, GLFW.getModBits(GLFW.active));
         }
       },
   onMouseButtonDown:(event) => {
@@ -7819,7 +8426,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           sx = event.deltaX;
         }
   
-        getWasmTableEntry(GLFW.active.scrollFunc)(GLFW.active.id, sx, sy);
+        ((a1, a2, a3) => dynCall_vidd(GLFW.active.scrollFunc, a1, a2, a3))(GLFW.active.id, sx, sy);
   
         event.preventDefault();
       },
@@ -7871,14 +8478,14 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (!GLFW.active) return;
   
         if (GLFW.active.windowSizeFunc) {
-          getWasmTableEntry(GLFW.active.windowSizeFunc)(GLFW.active.id, GLFW.active.width, GLFW.active.height);
+          ((a1, a2, a3) => dynCall_viii(GLFW.active.windowSizeFunc, a1, a2, a3))(GLFW.active.id, GLFW.active.width, GLFW.active.height);
         }
       },
   onFramebufferSizeChanged:() => {
         if (!GLFW.active) return;
   
         if (GLFW.active.framebufferSizeFunc) {
-          getWasmTableEntry(GLFW.active.framebufferSizeFunc)(GLFW.active.id, GLFW.active.framebufferWidth, GLFW.active.framebufferHeight);
+          ((a1, a2, a3) => dynCall_viii(GLFW.active.framebufferSizeFunc, a1, a2, a3))(GLFW.active.id, GLFW.active.framebufferWidth, GLFW.active.framebufferHeight);
         }
       },
   onWindowContentScaleChanged:(scale) => {
@@ -7886,7 +8493,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (!GLFW.active) return;
   
         if (GLFW.active.windowContentScaleFunc) {
-          getWasmTableEntry(GLFW.active.windowContentScaleFunc)(GLFW.active.id, GLFW.scale, GLFW.scale);
+          ((a1, a2, a3) => dynCall_viff(GLFW.active.windowContentScaleFunc, a1, a2, a3))(GLFW.active.id, GLFW.scale, GLFW.scale);
         }
       },
   getTime:() => _emscripten_get_now() / 1000,
@@ -7930,7 +8537,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
                 };
   
                 if (GLFW.joystickFunc) {
-                  getWasmTableEntry(GLFW.joystickFunc)(joy, 0x00040001); // GLFW_CONNECTED
+                  ((a1, a2) => dynCall_vii(GLFW.joystickFunc, a1, a2))(joy, 0x00040001); // GLFW_CONNECTED
                 }
               }
   
@@ -7948,7 +8555,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
                 out('glfw joystick disconnected',joy);
   
                 if (GLFW.joystickFunc) {
-                  getWasmTableEntry(GLFW.joystickFunc)(joy, 0x00040002); // GLFW_DISCONNECTED
+                  ((a1, a2) => dynCall_vii(GLFW.joystickFunc, a1, a2))(joy, 0x00040002); // GLFW_DISCONNECTED
                 }
   
                 _free(GLFW.joys[joy].id);
@@ -8036,7 +8643,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             var data = e.target.result;
             FS.writeFile(path, new Uint8Array(data));
             if (++written === numfiles) {
-              getWasmTableEntry(GLFW.active.dropFunc)(GLFW.active.id, filenamesArray.length, filenames);
+              ((a1, a2, a3) => dynCall_viii(GLFW.active.dropFunc, a1, a2, a3))(GLFW.active.id, filenamesArray.length, filenames);
   
               for (var i = 0; i < filenamesArray.length; ++i) {
                 _free(filenamesArray[i]);
@@ -8328,7 +8935,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         if (!win) return;
   
         if (win.windowCloseFunc) {
-          getWasmTableEntry(win.windowCloseFunc)(win.id);
+          ((a1) => dynCall_vi(win.windowCloseFunc, a1))(win.id);
         }
   
         GLFW.windows[win.id - 1] = null;
@@ -8687,8 +9294,285 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
 
 
+  var runAndAbortIfError = (func) => {
+      try {
+        return func();
+      } catch (e) {
+        abort(e);
+      }
+    };
+  
+  
+  var createNamedFunction = (name, func) => Object.defineProperty(func, 'name', { value: name });
+  
+  var runtimeKeepalivePush = () => {
+      runtimeKeepaliveCounter += 1;
+    };
+  
+  var runtimeKeepalivePop = () => {
+      assert(runtimeKeepaliveCounter > 0);
+      runtimeKeepaliveCounter -= 1;
+    };
+  
+  
+  
+  
+  var Asyncify = {
+  instrumentWasmImports(imports) {
+        var importPattern = /^(invoke_.*|__asyncjs__.*)$/;
+  
+        for (let [x, original] of Object.entries(imports)) {
+          if (typeof original == 'function') {
+            let isAsyncifyImport = original.isAsync || importPattern.test(x);
+            imports[x] = (...args) => {
+              var originalAsyncifyState = Asyncify.state;
+              try {
+                return original(...args);
+              } finally {
+                // Only asyncify-declared imports are allowed to change the
+                // state.
+                // Changing the state from normal to disabled is allowed (in any
+                // function) as that is what shutdown does (and we don't have an
+                // explicit list of shutdown imports).
+                var changedToDisabled =
+                      originalAsyncifyState === Asyncify.State.Normal &&
+                      Asyncify.state        === Asyncify.State.Disabled;
+                // invoke_* functions are allowed to change the state if we do
+                // not ignore indirect calls.
+                var ignoredInvoke = x.startsWith('invoke_') &&
+                                    true;
+                if (Asyncify.state !== originalAsyncifyState &&
+                    !isAsyncifyImport &&
+                    !changedToDisabled &&
+                    !ignoredInvoke) {
+                  abort(`import ${x} was not in ASYNCIFY_IMPORTS, but changed the state`);
+                }
+              }
+            };
+          }
+        }
+      },
+  instrumentFunction(original) {
+        var wrapper = (...args) => {
+          Asyncify.exportCallStack.push(original);
+          try {
+            return original(...args);
+          } finally {
+            if (!ABORT) {
+              var top = Asyncify.exportCallStack.pop();
+              assert(top === original);
+              Asyncify.maybeStopUnwind();
+            }
+          }
+        };
+        Asyncify.funcWrappers.set(original, wrapper);
+        wrapper = createNamedFunction(`__asyncify_wrapper_${original.name}`, wrapper);
+        return wrapper;
+      },
+  instrumentWasmExports(exports) {
+        var ret = {};
+        for (let [x, original] of Object.entries(exports)) {
+          if (typeof original == 'function') {
+            var wrapper = Asyncify.instrumentFunction(original);
+            ret[x] = wrapper;
+          } else {
+            ret[x] = original;
+          }
+        }
+        return ret;
+      },
+  State:{
+  Normal:0,
+  Unwinding:1,
+  Rewinding:2,
+  Disabled:3,
+  },
+  state:0,
+  StackSize:4096,
+  currData:null,
+  handleSleepReturnValue:0,
+  exportCallStack:[],
+  callstackFuncToId:new Map,
+  callStackIdToFunc:new Map,
+  funcWrappers:new Map,
+  callStackId:0,
+  asyncPromiseHandlers:null,
+  sleepCallbacks:[],
+  getCallStackId(func) {
+        assert(func);
+        if (!Asyncify.callstackFuncToId.has(func)) {
+          var id = Asyncify.callStackId++;
+          Asyncify.callstackFuncToId.set(func, id);
+          Asyncify.callStackIdToFunc.set(id, func);
+        }
+        return Asyncify.callstackFuncToId.get(func);
+      },
+  maybeStopUnwind() {
+        if (Asyncify.currData &&
+            Asyncify.state === Asyncify.State.Unwinding &&
+            !Asyncify.exportCallStack.length) {
+          // We just finished unwinding.
+          // Be sure to set the state before calling any other functions to avoid
+          // possible infinite recursion here (For example in debug pthread builds
+          // the dbg() function itself can call back into WebAssembly to get the
+          // current pthread_self() pointer).
+          Asyncify.state = Asyncify.State.Normal;
+          
+          // Keep the runtime alive so that a re-wind can be done later.
+          runAndAbortIfError(_asyncify_stop_unwind);
+          if (typeof Fibers != 'undefined') {
+            Fibers.trampoline();
+          }
+        }
+      },
+  whenDone() {
+        assert(Asyncify.currData, 'tried to wait for an async operation when none is in progress');
+        assert(!Asyncify.asyncPromiseHandlers, 'cannot have multiple async operations in flight at once');
+        return new Promise((resolve, reject) => {
+          Asyncify.asyncPromiseHandlers = { resolve, reject };
+        });
+      },
+  allocateData() {
+        // An asyncify data structure has three fields:
+        //  0  current stack pos
+        //  4  max stack pos
+        //  8  id of function at bottom of the call stack (callStackIdToFunc[id] == wasm func)
+        //
+        // The Asyncify ABI only interprets the first two fields, the rest is for the runtime.
+        // We also embed a stack in the same memory region here, right next to the structure.
+        // This struct is also defined as asyncify_data_t in emscripten/fiber.h
+        var ptr = _malloc(12 + Asyncify.StackSize);
+        Asyncify.setDataHeader(ptr, ptr + 12, Asyncify.StackSize);
+        Asyncify.setDataRewindFunc(ptr);
+        return ptr;
+      },
+  setDataHeader(ptr, stack, stackSize) {
+        HEAPU32[((ptr)>>2)] = stack;
+        HEAPU32[(((ptr)+(4))>>2)] = stack + stackSize;
+      },
+  setDataRewindFunc(ptr) {
+        var bottomOfCallStack = Asyncify.exportCallStack[0];
+        assert(bottomOfCallStack, 'exportCallStack is empty');
+        var rewindId = Asyncify.getCallStackId(bottomOfCallStack);
+        HEAP32[(((ptr)+(8))>>2)] = rewindId;
+      },
+  getDataRewindFunc(ptr) {
+        var id = HEAP32[(((ptr)+(8))>>2)];
+        var func = Asyncify.callStackIdToFunc.get(id);
+        assert(func, `id ${id} not found in callStackIdToFunc`);
+        return func;
+      },
+  doRewind(ptr) {
+        var original = Asyncify.getDataRewindFunc(ptr);
+        var func = Asyncify.funcWrappers.get(original);
+        assert(original);
+        assert(func);
+        // Once we have rewound and the stack we no longer need to artificially
+        // keep the runtime alive.
+        
+        return callUserCallback(func);
+      },
+  handleSleep(startAsync) {
+        assert(Asyncify.state !== Asyncify.State.Disabled, 'handleSleep called after Asyncify was shut down');
+        if (ABORT) return;
+        if (Asyncify.state === Asyncify.State.Normal) {
+          // Prepare to sleep. Call startAsync, and see what happens:
+          // if the code decided to call our callback synchronously,
+          // then no async operation was in fact begun, and we don't
+          // need to do anything.
+          var reachedCallback = false;
+          var reachedAfterCallback = false;
+          startAsync((handleSleepReturnValue = 0) => {
+            // old emterpretify API supported other stuff
+            assert(['undefined', 'number', 'boolean', 'bigint'].includes(typeof handleSleepReturnValue), `invalid type for handleSleepReturnValue: '${typeof handleSleepReturnValue}'`);
+            if (ABORT) return;
+            Asyncify.handleSleepReturnValue = handleSleepReturnValue;
+            reachedCallback = true;
+            if (!reachedAfterCallback) {
+              // We are happening synchronously, so no need for async.
+              return;
+            }
+            // This async operation did not happen synchronously, so we did
+            // unwind. In that case there can be no compiled code on the stack,
+            // as it might break later operations (we can rewind ok now, but if
+            // we unwind again, we would unwind through the extra compiled code
+            // too).
+            assert(!Asyncify.exportCallStack.length, 'waking up (starting to rewind) must be done from JS, without compiled code on the stack');
+            Asyncify.state = Asyncify.State.Rewinding;
+            runAndAbortIfError(() => _asyncify_start_rewind(Asyncify.currData));
+            if (typeof MainLoop != 'undefined' && MainLoop.func) {
+              MainLoop.resume();
+            }
+            var asyncWasmReturnValue, isError = false;
+            try {
+              asyncWasmReturnValue = Asyncify.doRewind(Asyncify.currData);
+            } catch (err) {
+              asyncWasmReturnValue = err;
+              isError = true;
+            }
+            // Track whether the return value was handled by any promise handlers.
+            var handled = false;
+            if (!Asyncify.currData) {
+              // All asynchronous execution has finished.
+              // `asyncWasmReturnValue` now contains the final
+              // return value of the exported async WASM function.
+              //
+              // Note: `asyncWasmReturnValue` is distinct from
+              // `Asyncify.handleSleepReturnValue`.
+              // `Asyncify.handleSleepReturnValue` contains the return
+              // value of the last C function to have executed
+              // `Asyncify.handleSleep()`, whereas `asyncWasmReturnValue`
+              // contains the return value of the exported WASM function
+              // that may have called C functions that
+              // call `Asyncify.handleSleep()`.
+              var asyncPromiseHandlers = Asyncify.asyncPromiseHandlers;
+              if (asyncPromiseHandlers) {
+                Asyncify.asyncPromiseHandlers = null;
+                (isError ? asyncPromiseHandlers.reject : asyncPromiseHandlers.resolve)(asyncWasmReturnValue);
+                handled = true;
+              }
+            }
+            if (isError && !handled) {
+              // If there was an error and it was not handled by now, we have no choice but to
+              // rethrow that error into the global scope where it can be caught only by
+              // `onerror` or `onunhandledpromiserejection`.
+              throw asyncWasmReturnValue;
+            }
+          });
+          reachedAfterCallback = true;
+          if (!reachedCallback) {
+            // A true async operation was begun; start a sleep.
+            Asyncify.state = Asyncify.State.Unwinding;
+            // TODO: reuse, don't alloc/free every sleep
+            Asyncify.currData = Asyncify.allocateData();
+            if (typeof MainLoop != 'undefined' && MainLoop.func) {
+              MainLoop.pause();
+            }
+            runAndAbortIfError(() => _asyncify_start_unwind(Asyncify.currData));
+          }
+        } else if (Asyncify.state === Asyncify.State.Rewinding) {
+          // Stop a resume.
+          Asyncify.state = Asyncify.State.Normal;
+          runAndAbortIfError(_asyncify_stop_rewind);
+          _free(Asyncify.currData);
+          Asyncify.currData = null;
+          // Call all sleep callbacks now that the sleep-resume is all done.
+          Asyncify.sleepCallbacks.forEach(callUserCallback);
+        } else {
+          abort(`invalid state: ${Asyncify.state}`);
+        }
+        return Asyncify.handleSleepReturnValue;
+      },
+  handleAsync:(startAsync) => Asyncify.handleSleep(async (wakeUp) => {
+        // TODO: add error handling as a second param when handleSleep implements it.
+        wakeUp(await startAsync());
+      }),
+  };
 
 
+
+
+  var requestFullscreen = Browser.requestFullscreen;
 
   var FS_createPath = (...args) => FS.createPath(...args);
 
@@ -8736,8 +9620,26 @@ if (Module['print']) out = Module['print'];
 if (Module['printErr']) err = Module['printErr'];
   // End ATMODULES hooks
 
+  checkIncomingModuleAPI();
+
   if (Module['arguments']) programArgs = Module['arguments'];
   if (Module['thisProgram']) thisProgram = Module['thisProgram'];
+
+  // Assertions on removed incoming Module JS APIs.
+  assert(typeof Module['memoryInitializerPrefixURL'] == 'undefined', 'Module.memoryInitializerPrefixURL option was removed, use Module.locateFile instead');
+  assert(typeof Module['pthreadMainPrefixURL'] == 'undefined', 'Module.pthreadMainPrefixURL option was removed, use Module.locateFile instead');
+  assert(typeof Module['cdInitializerPrefixURL'] == 'undefined', 'Module.cdInitializerPrefixURL option was removed, use Module.locateFile instead');
+  assert(typeof Module['filePackagePrefixURL'] == 'undefined', 'Module.filePackagePrefixURL option was removed, use Module.locateFile instead');
+  assert(typeof Module['read'] == 'undefined', 'Module.read option was removed');
+  assert(typeof Module['readAsync'] == 'undefined', 'Module.readAsync option was removed (modify readAsync in JS)');
+  assert(typeof Module['readBinary'] == 'undefined', 'Module.readBinary option was removed (modify readBinary in JS)');
+  assert(typeof Module['setWindowTitle'] == 'undefined', 'Module.setWindowTitle option was removed (modify emscripten_set_window_title in JS)');
+  assert(typeof Module['TOTAL_MEMORY'] == 'undefined', 'Module.TOTAL_MEMORY has been renamed Module.INITIAL_MEMORY');
+  assert(typeof Module['ENVIRONMENT'] == 'undefined', 'Module.ENVIRONMENT has been deprecated. To force the environment, use the ENVIRONMENT compile-time option (for example, -sENVIRONMENT=web or -sENVIRONMENT=node)');
+  assert(typeof Module['STACK_SIZE'] == 'undefined', 'STACK_SIZE can no longer be set at runtime.  Use -sSTACK_SIZE at link time')
+  // If memory is defined in wasm, the user can't provide it, or set INITIAL_MEMORY
+  assert(typeof Module['wasmMemory'] == 'undefined', 'Use of `wasmMemory` detected.  Use -sIMPORTED_MEMORY to define wasmMemory externally');
+  assert(typeof Module['INITIAL_MEMORY'] == 'undefined', 'Detected runtime INITIAL_MEMORY setting.  Use -sIMPORTED_MEMORY to define wasmMemory dynamically');
 
   var preInit = Module['preInit'];
   if (preInit) {
@@ -8748,90 +9650,667 @@ if (Module['printErr']) err = Module['printErr'];
       preInit.shift()();
     }
   }
+  consumedModuleProp('preInit');
 }
 
 // Begin runtime exports
   Module['addRunDependency'] = addRunDependency;
   Module['removeRunDependency'] = removeRunDependency;
+  Module['requestFullscreen'] = requestFullscreen;
   Module['FS_preloadFile'] = FS_preloadFile;
   Module['FS_unlink'] = FS_unlink;
   Module['FS_createPath'] = FS_createPath;
   Module['FS_createDevice'] = FS_createDevice;
   Module['FS_createDataFile'] = FS_createDataFile;
   Module['FS_createLazyFile'] = FS_createLazyFile;
+  var missingLibrarySymbols = [
+  'writeI53ToI64Clamped',
+  'writeI53ToI64Signaling',
+  'writeI53ToU64Clamped',
+  'writeI53ToU64Signaling',
+  'convertI32PairToI53',
+  'convertI32PairToI53Checked',
+  'convertU32PairToI53',
+  'stackAlloc',
+  'getTempRet0',
+  'setTempRet0',
+  'zeroMemory',
+  'withStackSave',
+  'inetPton4',
+  'inetNtop4',
+  'inetPton6',
+  'inetNtop6',
+  'readSockaddr',
+  'writeSockaddr',
+  'runMainThreadEmAsm',
+  'autoResumeAudioContext',
+  'getDynCaller',
+  'asmjsMangle',
+  'HandleAllocator',
+  'addOnInit',
+  'addOnPostCtor',
+  'addOnPreMain',
+  'STACK_SIZE',
+  'STACK_ALIGN',
+  'POINTER_SIZE',
+  'ASSERTIONS',
+  'ccall',
+  'cwrap',
+  'convertJsFunctionToWasm',
+  'getEmptyTableSlot',
+  'updateTableMap',
+  'getFunctionAddress',
+  'addFunction',
+  'removeFunction',
+  'setValue',
+  'getValue',
+  'intArrayToString',
+  'AsciiToString',
+  'stringToAscii',
+  'UTF16ToString',
+  'stringToUTF16',
+  'lengthBytesUTF16',
+  'UTF32ToString',
+  'stringToUTF32',
+  'lengthBytesUTF32',
+  'stringToUTF8OnStack',
+  'writeArrayToMemory',
+  'registerKeyEventCallback',
+  'registerWheelEventCallback',
+  'registerFocusEventCallback',
+  'fillDeviceOrientationEventData',
+  'registerDeviceOrientationEventCallback',
+  'fillDeviceMotionEventData',
+  'registerDeviceMotionEventCallback',
+  'screenOrientation',
+  'fillOrientationChangeEventData',
+  'registerOrientationChangeEventCallback',
+  'callCanvasResizedCallback',
+  'JSEvents_requestFullscreen',
+  'JSEvents_resizeCanvasForFullscreen',
+  'registerRestoreOldStyle',
+  'hideEverythingExceptGivenElement',
+  'restoreHiddenElements',
+  'setLetterbox',
+  'currentFullscreenStrategy',
+  'softFullscreenResizeWebGLRenderTarget',
+  'doRequestFullscreen',
+  'registerPointerlockErrorEventCallback',
+  'requestPointerLock',
+  'fillVisibilityChangeEventData',
+  'registerVisibilityChangeEventCallback',
+  'registerBeforeUnloadEventCallback',
+  'fillBatteryEventData',
+  'registerBatteryEventCallback',
+  'setCanvasElementSize',
+  'getCanvasElementSize',
+  'jsStackTrace',
+  'getCallstack',
+  'convertPCtoSourceLocation',
+  'wasiRightsToMuslOFlags',
+  'wasiOFlagsToMuslOFlags',
+  'setImmediateWrapped',
+  'safeRequestAnimationFrame',
+  'clearImmediateWrapped',
+  'registerPostMainLoop',
+  'registerPreMainLoop',
+  'getPromise',
+  'makePromise',
+  'addPromise',
+  'idsToPromises',
+  'makePromiseCallback',
+  'findMatchingCatch',
+  'incrementUncaughtExceptionCount',
+  'decrementUncaughtExceptionCount',
+  'Browser_asyncPrepareDataCounter',
+  'isLeapYear',
+  'ydayFromDate',
+  'arraySum',
+  'addDays',
+  'getSocketFromFD',
+  'getSocketAddress',
+  'FS_mkdirTree',
+  '_setNetworkCallback',
+  'writeGLArray',
+  'registerWebGlEventCallback',
+  'writeStringToMemory',
+  'writeAsciiToMemory',
+  'allocateUTF8',
+  'allocateUTF8OnStack',
+  'demangle',
+  'stackTrace',
+  'getNativeTypeSize',
+];
+missingLibrarySymbols.forEach(missingLibrarySymbol)
+
+  var unexportedSymbols = [
+  'run',
+  'out',
+  'err',
+  'callMain',
+  'abort',
+  'wasmExports',
+  'writeStackCookie',
+  'checkStackCookie',
+  'writeI53ToI64',
+  'readI53FromI64',
+  'readI53FromU64',
+  'INT53_MAX',
+  'INT53_MIN',
+  'bigintToI53Checked',
+  'HEAP8',
+  'HEAPU8',
+  'HEAP16',
+  'HEAPU16',
+  'HEAP32',
+  'HEAPU32',
+  'HEAPF32',
+  'HEAPF64',
+  'HEAP64',
+  'HEAPU64',
+  'stackSave',
+  'stackRestore',
+  'createNamedFunction',
+  'ptrToString',
+  'exitJS',
+  'getHeapMax',
+  'growMemory',
+  'ENV',
+  'ERRNO_CODES',
+  'strError',
+  'DNS',
+  'Protocols',
+  'Sockets',
+  'timers',
+  'warnOnce',
+  'readEmAsmArgsArray',
+  'readEmAsmArgs',
+  'runEmAsmFunction',
+  'jstoi_q',
+  'getExecutableName',
+  'dynCallLegacy',
+  'dynCall',
+  'handleException',
+  'keepRuntimeAlive',
+  'runtimeKeepalivePush',
+  'runtimeKeepalivePop',
+  'callUserCallback',
+  'maybeExit',
+  'asyncLoad',
+  'alignMemory',
+  'mmapAlloc',
+  'wasmTable',
+  'wasmMemory',
+  'getUniqueRunDependency',
+  'noExitRuntime',
+  'addOnPreRun',
+  'addOnExit',
+  'addOnPostRun',
+  'freeTableIndexes',
+  'functionsInTableMap',
+  'PATH',
+  'PATH_FS',
+  'UTF8Decoder',
+  'UTF8ArrayToString',
+  'UTF8ToString',
+  'stringToUTF8Array',
+  'stringToUTF8',
+  'lengthBytesUTF8',
+  'intArrayFromString',
+  'UTF16Decoder',
+  'stringToNewUTF8',
+  'JSEvents',
+  'specialHTMLTargets',
+  'maybeCStringToJsString',
+  'findEventTarget',
+  'findCanvasEventTarget',
+  'getBoundingClientRect',
+  'fillMouseEventData',
+  'registerMouseEventCallback',
+  'registerUiEventCallback',
+  'fillFullscreenChangeEventData',
+  'registerFullscreenChangeEventCallback',
+  'restoreOldWindowedStyle',
+  'fillPointerlockChangeEventData',
+  'registerPointerlockChangeEventCallback',
+  'registerTouchEventCallback',
+  'fillGamepadEventData',
+  'registerGamepadEventCallback',
+  'UNWIND_CACHE',
+  'ExitStatus',
+  'getEnvStrings',
+  'checkWasiClock',
+  'doReadv',
+  'doWritev',
+  'initRandomFill',
+  'randomFill',
+  'safeSetTimeout',
+  'emSetImmediate',
+  'emClearImmediate_deps',
+  'emClearImmediate',
+  'promiseMap',
+  'uncaughtExceptionCount',
+  'exceptionCaught',
+  'ExceptionInfo',
+  'Browser',
+  'setCanvasSize',
+  'getUserMedia',
+  'createContext',
+  'getPreloadedImageData__data',
+  'wget',
+  'MONTH_DAYS_REGULAR',
+  'MONTH_DAYS_LEAP',
+  'MONTH_DAYS_REGULAR_CUMULATIVE',
+  'MONTH_DAYS_LEAP_CUMULATIVE',
+  'SYSCALLS',
+  'preloadPlugins',
+  'FS_createPreloadedFile',
+  'FS_modeStringToFlags',
+  'FS_getMode',
+  'FS_fileDataToTypedArray',
+  'FS_stdin_getChar_buffer',
+  'FS_stdin_getChar',
+  'FS_readFile',
+  'FS',
+  'FS_root',
+  'FS_mounts',
+  'FS_devices',
+  'FS_streams',
+  'FS_nextInode',
+  'FS_nameTable',
+  'FS_currentPath',
+  'FS_initialized',
+  'FS_ignorePermissions',
+  'FS_filesystems',
+  'FS_syncFSRequests',
+  'FS_lookupPath',
+  'FS_getPath',
+  'FS_hashName',
+  'FS_hashAddNode',
+  'FS_hashRemoveNode',
+  'FS_lookupNode',
+  'FS_createNode',
+  'FS_destroyNode',
+  'FS_isRoot',
+  'FS_isMountpoint',
+  'FS_isFile',
+  'FS_isDir',
+  'FS_isLink',
+  'FS_isChrdev',
+  'FS_isBlkdev',
+  'FS_isFIFO',
+  'FS_isSocket',
+  'FS_flagsToPermissionString',
+  'FS_nodePermissions',
+  'FS_mayLookup',
+  'FS_mayCreate',
+  'FS_mayDelete',
+  'FS_mayOpen',
+  'FS_checkOpExists',
+  'FS_nextfd',
+  'FS_getStreamChecked',
+  'FS_getStream',
+  'FS_createStream',
+  'FS_closeStream',
+  'FS_dupStream',
+  'FS_doSetAttr',
+  'FS_chrdev_stream_ops',
+  'FS_major',
+  'FS_minor',
+  'FS_makedev',
+  'FS_registerDevice',
+  'FS_getDevice',
+  'FS_getMounts',
+  'FS_syncfs',
+  'FS_mount',
+  'FS_unmount',
+  'FS_lookup',
+  'FS_mknod',
+  'FS_statfs',
+  'FS_statfsStream',
+  'FS_statfsNode',
+  'FS_create',
+  'FS_mkdir',
+  'FS_mkdev',
+  'FS_symlink',
+  'FS_link',
+  'FS_rename',
+  'FS_rmdir',
+  'FS_readdir',
+  'FS_readlink',
+  'FS_stat',
+  'FS_fstat',
+  'FS_lstat',
+  'FS_doChmod',
+  'FS_chmod',
+  'FS_lchmod',
+  'FS_fchmod',
+  'FS_doChown',
+  'FS_chown',
+  'FS_lchown',
+  'FS_fchown',
+  'FS_doTruncate',
+  'FS_truncate',
+  'FS_ftruncate',
+  'FS_utime',
+  'FS_open',
+  'FS_close',
+  'FS_isClosed',
+  'FS_llseek',
+  'FS_read',
+  'FS_write',
+  'FS_mmap',
+  'FS_msync',
+  'FS_ioctl',
+  'FS_writeFile',
+  'FS_cwd',
+  'FS_chdir',
+  'FS_createDefaultDirectories',
+  'FS_createDefaultDevices',
+  'FS_createSpecialDirectories',
+  'FS_createStandardStreams',
+  'FS_staticInit',
+  'FS_init',
+  'FS_quit',
+  'FS_findObject',
+  'FS_analyzePath',
+  'FS_createFile',
+  'FS_forceLoadFile',
+  'MEMFS',
+  'TTY',
+  'PIPEFS',
+  'SOCKFS',
+  'tempFixedLengthArray',
+  'miniTempWebGLFloatBuffers',
+  'miniTempWebGLIntBuffers',
+  'heapObjectForWebGLType',
+  'toTypedArrayIndex',
+  'webgl_enable_ANGLE_instanced_arrays',
+  'webgl_enable_OES_vertex_array_object',
+  'webgl_enable_WEBGL_draw_buffers',
+  'webgl_enable_WEBGL_multi_draw',
+  'webgl_enable_EXT_polygon_offset_clamp',
+  'webgl_enable_EXT_clip_control',
+  'webgl_enable_WEBGL_polygon_mode',
+  'GL',
+  'emscriptenWebGLGet',
+  'computeUnpackAlignedImageSize',
+  'colorChannelsInGlTextureFormat',
+  'emscriptenWebGLGetTexPixelData',
+  'emscriptenWebGLGetUniform',
+  'webglGetProgramUniformLocation',
+  'webglGetUniformLocation',
+  'webglPrepareUniformLocationsBeforeFirstUse',
+  'webglGetLeftBracePos',
+  'emscriptenWebGLGetVertexAttrib',
+  '__glGetActiveAttribOrUniform',
+  'AL',
+  'GLUT',
+  'EGL',
+  'GLEW',
+  'IDBStore',
+  'runAndAbortIfError',
+  'Asyncify',
+  'Fibers',
+  'SDL',
+  'SDL_gfx',
+  'GLFW_Window',
+  'GLFW',
+  'print',
+  'printErr',
+  'jstoi_s',
+];
+unexportedSymbols.forEach(unexportedRuntimeSymbol);
+
   // End runtime exports
   // Begin JS library exports
   // End JS library exports
 
 // end include: postlibrary.js
 
+function checkIncomingModuleAPI() {
+  ignoredModuleProp('fetchSettings');
+  ignoredModuleProp('logReadFiles');
+  ignoredModuleProp('loadSplitModule');
+  ignoredModuleProp('onMalloc');
+  ignoredModuleProp('onRealloc');
+  ignoredModuleProp('onFree');
+  ignoredModuleProp('onSbrkGrow');
+  ignoredModuleProp('onCOSCacheHit');
+  ignoredModuleProp('onCOSCacheMiss');
+  ignoredModuleProp('onCOSStore');
+  ignoredModuleProp('GL_MAX_TEXTURE_IMAGE_UNITS');
+  ignoredModuleProp('SDL_canPlayWithWebAudio');
+  ignoredModuleProp('SDL_numSimultaneouslyQueuedBuffers');
+  ignoredModuleProp('freePreloadedMediaOnUse');
+  ignoredModuleProp('preinitializedWebGLContext');
+  ignoredModuleProp('keyboardListeningElement');
+  ignoredModuleProp('doNotCaptureKeyboard');
+  ignoredModuleProp('extraStackTrace');
+  ignoredModuleProp('preloadPlugins');
+  ignoredModuleProp('preMainLoop');
+  ignoredModuleProp('postMainLoop');
+  ignoredModuleProp('forcedAspectRatio');
+  ignoredModuleProp('mainScriptUrlOrBlob');
+  ignoredModuleProp('onFullScreen');
+  ignoredModuleProp('INITIAL_MEMORY');
+  ignoredModuleProp('wasmMemory');
+  ignoredModuleProp('wasmBinary');
+}
 var ASM_CONSTS = {
-  78428: () => { if (document.fullscreenElement) return 1; },  
- 78474: () => { return document.getElementById('canvas').width; },  
- 78526: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 78594: () => { document.exitFullscreen(); },  
- 78621: () => { setTimeout(function() { Module.requestFullscreen(false, false); }, 100); },  
- 78694: () => { if (document.fullscreenElement) return 1; },  
- 78740: () => { return document.getElementById('canvas').width; },  
- 78792: () => { return screen.width; },  
- 78817: () => { document.exitFullscreen(); },  
- 78844: () => { setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { canvas.style.width="unset"; }, 100); }, 100); },  
- 78977: () => { return window.innerWidth; },  
- 79003: () => { return window.innerHeight; },  
- 79030: () => { if (document.fullscreenElement) return 1; },  
- 79076: () => { return document.getElementById('canvas').width; },  
- 79128: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 79196: () => { if (document.fullscreenElement) return 1; },  
- 79242: () => { return document.getElementById('canvas').width; },  
- 79294: () => { return screen.width; },  
- 79319: () => { return window.innerWidth; },  
- 79345: () => { return window.innerHeight; },  
- 79372: () => { if (document.fullscreenElement) return 1; },  
- 79418: () => { return document.getElementById('canvas').width; },  
- 79470: () => { return screen.width; },  
- 79495: () => { document.exitFullscreen(); },  
- 79522: () => { if (document.fullscreenElement) return 1; },  
- 79568: () => { return document.getElementById('canvas').width; },  
- 79620: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 79688: () => { document.exitFullscreen(); },  
- 79715: ($0) => { document.getElementById('canvas').style.opacity = $0; },  
- 79773: () => { return screen.width; },  
- 79798: () => { return screen.height; },  
- 79824: () => { return window.screenX; },  
- 79851: () => { return window.screenY; },  
- 79878: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 79931: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 80002: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 80059: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
- 80315: ($0) => { document.getElementById('canvas').style.cursor = UTF8ToString($0); },  
- 80386: () => { if (document.fullscreenElement) return 1; },  
- 80432: () => { return window.innerWidth; },  
- 80458: () => { return window.innerHeight; },  
- 80485: () => { if (document.pointerLockElement) return 1; }
+  146976: () => { if (document.fullscreenElement) return 1; },  
+ 147022: () => { return document.getElementById('canvas').width; },  
+ 147074: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 147142: () => { document.exitFullscreen(); },  
+ 147169: () => { setTimeout(function() { Module.requestFullscreen(false, false); }, 100); },  
+ 147242: () => { if (document.fullscreenElement) return 1; },  
+ 147288: () => { return document.getElementById('canvas').width; },  
+ 147340: () => { return screen.width; },  
+ 147365: () => { document.exitFullscreen(); },  
+ 147392: () => { setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { canvas.style.width="unset"; }, 100); }, 100); },  
+ 147525: () => { return window.innerWidth; },  
+ 147551: () => { return window.innerHeight; },  
+ 147578: () => { if (document.fullscreenElement) return 1; },  
+ 147624: () => { return document.getElementById('canvas').width; },  
+ 147676: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 147744: () => { if (document.fullscreenElement) return 1; },  
+ 147790: () => { return document.getElementById('canvas').width; },  
+ 147842: () => { return screen.width; },  
+ 147867: () => { return window.innerWidth; },  
+ 147893: () => { return window.innerHeight; },  
+ 147920: () => { if (document.fullscreenElement) return 1; },  
+ 147966: () => { return document.getElementById('canvas').width; },  
+ 148018: () => { return screen.width; },  
+ 148043: () => { document.exitFullscreen(); },  
+ 148070: () => { if (document.fullscreenElement) return 1; },  
+ 148116: () => { return document.getElementById('canvas').width; },  
+ 148168: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 148236: () => { document.exitFullscreen(); },  
+ 148263: ($0) => { document.getElementById('canvas').style.opacity = $0; },  
+ 148321: () => { return screen.width; },  
+ 148346: () => { return screen.height; },  
+ 148372: () => { return window.screenX; },  
+ 148399: () => { return window.screenY; },  
+ 148426: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 148479: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 148550: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 148607: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
+ 148863: ($0) => { document.getElementById('canvas').style.cursor = UTF8ToString($0); },  
+ 148934: () => { if (document.fullscreenElement) return 1; },  
+ 148980: () => { return window.innerWidth; },  
+ 149006: () => { return window.innerHeight; },  
+ 149033: () => { if (document.pointerLockElement) return 1; }
 };
 
 // Imports from the Wasm binary.
-var _main,
-  _malloc,
-  _free,
-  __emscripten_stack_restore,
-  __emscripten_stack_alloc,
-  _emscripten_stack_get_current,
-  memory,
-  __indirect_function_table,
-  wasmMemory,
-  wasmTable;
-
+var _main = Module['_main'] = makeInvalidEarlyAccess('_main');
+var _malloc = makeInvalidEarlyAccess('_malloc');
+var _free = makeInvalidEarlyAccess('_free');
+var _fflush = makeInvalidEarlyAccess('_fflush');
+var _emscripten_stack_get_end = makeInvalidEarlyAccess('_emscripten_stack_get_end');
+var _emscripten_stack_get_base = makeInvalidEarlyAccess('_emscripten_stack_get_base');
+var _strerror = makeInvalidEarlyAccess('_strerror');
+var _emscripten_stack_init = makeInvalidEarlyAccess('_emscripten_stack_init');
+var _emscripten_stack_get_free = makeInvalidEarlyAccess('_emscripten_stack_get_free');
+var __emscripten_stack_restore = makeInvalidEarlyAccess('__emscripten_stack_restore');
+var __emscripten_stack_alloc = makeInvalidEarlyAccess('__emscripten_stack_alloc');
+var _emscripten_stack_get_current = makeInvalidEarlyAccess('_emscripten_stack_get_current');
+var dynCall_vi = makeInvalidEarlyAccess('dynCall_vi');
+var dynCall_v = makeInvalidEarlyAccess('dynCall_v');
+var dynCall_ii = makeInvalidEarlyAccess('dynCall_ii');
+var dynCall_iii = makeInvalidEarlyAccess('dynCall_iii');
+var dynCall_vii = makeInvalidEarlyAccess('dynCall_vii');
+var dynCall_viii = makeInvalidEarlyAccess('dynCall_viii');
+var dynCall_viff = makeInvalidEarlyAccess('dynCall_viff');
+var dynCall_viiiii = makeInvalidEarlyAccess('dynCall_viiiii');
+var dynCall_viiii = makeInvalidEarlyAccess('dynCall_viiii');
+var dynCall_vidd = makeInvalidEarlyAccess('dynCall_vidd');
+var dynCall_iiii = makeInvalidEarlyAccess('dynCall_iiii');
+var dynCall_iiiiii = makeInvalidEarlyAccess('dynCall_iiiiii');
+var dynCall_viiiiii = makeInvalidEarlyAccess('dynCall_viiiiii');
+var dynCall_vffff = makeInvalidEarlyAccess('dynCall_vffff');
+var dynCall_vf = makeInvalidEarlyAccess('dynCall_vf');
+var dynCall_viiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiii');
+var dynCall_viiiiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiiiii');
+var dynCall_i = makeInvalidEarlyAccess('dynCall_i');
+var dynCall_vff = makeInvalidEarlyAccess('dynCall_vff');
+var dynCall_viiiiiii = makeInvalidEarlyAccess('dynCall_viiiiiii');
+var dynCall_vfi = makeInvalidEarlyAccess('dynCall_vfi');
+var dynCall_viif = makeInvalidEarlyAccess('dynCall_viif');
+var dynCall_vif = makeInvalidEarlyAccess('dynCall_vif');
+var dynCall_vifff = makeInvalidEarlyAccess('dynCall_vifff');
+var dynCall_viffff = makeInvalidEarlyAccess('dynCall_viffff');
+var dynCall_vfff = makeInvalidEarlyAccess('dynCall_vfff');
+var dynCall_jiji = makeInvalidEarlyAccess('dynCall_jiji');
+var dynCall_iidiiiii = makeInvalidEarlyAccess('dynCall_iidiiiii');
+var dynCall_viijii = makeInvalidEarlyAccess('dynCall_viijii');
+var dynCall_iiiii = makeInvalidEarlyAccess('dynCall_iiiii');
+var dynCall_iiiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiiii');
+var dynCall_iiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiii');
+var dynCall_iiiiij = makeInvalidEarlyAccess('dynCall_iiiiij');
+var dynCall_iiiiid = makeInvalidEarlyAccess('dynCall_iiiiid');
+var dynCall_iiiiijj = makeInvalidEarlyAccess('dynCall_iiiiijj');
+var dynCall_iiiiiiii = makeInvalidEarlyAccess('dynCall_iiiiiiii');
+var dynCall_iiiiiijj = makeInvalidEarlyAccess('dynCall_iiiiiijj');
+var _asyncify_start_unwind = makeInvalidEarlyAccess('_asyncify_start_unwind');
+var _asyncify_stop_unwind = makeInvalidEarlyAccess('_asyncify_stop_unwind');
+var _asyncify_start_rewind = makeInvalidEarlyAccess('_asyncify_start_rewind');
+var _asyncify_stop_rewind = makeInvalidEarlyAccess('_asyncify_stop_rewind');
+var memory = makeInvalidEarlyAccess('memory');
+var __indirect_function_table = makeInvalidEarlyAccess('__indirect_function_table');
+var wasmMemory = makeInvalidEarlyAccess('wasmMemory');
 
 function assignWasmExports(wasmExports) {
-  _main = Module['_main'] = wasmExports['main'];
-  _malloc = wasmExports['malloc'];
-  _free = wasmExports['free'];
+  assert(typeof wasmExports['main'] != 'undefined', 'missing Wasm export: main');
+  assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
+  assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
+  assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
+  assert(typeof wasmExports['emscripten_stack_get_end'] != 'undefined', 'missing Wasm export: emscripten_stack_get_end');
+  assert(typeof wasmExports['emscripten_stack_get_base'] != 'undefined', 'missing Wasm export: emscripten_stack_get_base');
+  assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');
+  assert(typeof wasmExports['emscripten_stack_init'] != 'undefined', 'missing Wasm export: emscripten_stack_init');
+  assert(typeof wasmExports['emscripten_stack_get_free'] != 'undefined', 'missing Wasm export: emscripten_stack_get_free');
+  assert(typeof wasmExports['_emscripten_stack_restore'] != 'undefined', 'missing Wasm export: _emscripten_stack_restore');
+  assert(typeof wasmExports['_emscripten_stack_alloc'] != 'undefined', 'missing Wasm export: _emscripten_stack_alloc');
+  assert(typeof wasmExports['emscripten_stack_get_current'] != 'undefined', 'missing Wasm export: emscripten_stack_get_current');
+  assert(typeof wasmExports['dynCall_vi'] != 'undefined', 'missing Wasm export: dynCall_vi');
+  assert(typeof wasmExports['dynCall_v'] != 'undefined', 'missing Wasm export: dynCall_v');
+  assert(typeof wasmExports['dynCall_ii'] != 'undefined', 'missing Wasm export: dynCall_ii');
+  assert(typeof wasmExports['dynCall_iii'] != 'undefined', 'missing Wasm export: dynCall_iii');
+  assert(typeof wasmExports['dynCall_vii'] != 'undefined', 'missing Wasm export: dynCall_vii');
+  assert(typeof wasmExports['dynCall_viii'] != 'undefined', 'missing Wasm export: dynCall_viii');
+  assert(typeof wasmExports['dynCall_viff'] != 'undefined', 'missing Wasm export: dynCall_viff');
+  assert(typeof wasmExports['dynCall_viiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiii');
+  assert(typeof wasmExports['dynCall_viiii'] != 'undefined', 'missing Wasm export: dynCall_viiii');
+  assert(typeof wasmExports['dynCall_vidd'] != 'undefined', 'missing Wasm export: dynCall_vidd');
+  assert(typeof wasmExports['dynCall_iiii'] != 'undefined', 'missing Wasm export: dynCall_iiii');
+  assert(typeof wasmExports['dynCall_iiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiii');
+  assert(typeof wasmExports['dynCall_viiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiii');
+  assert(typeof wasmExports['dynCall_vffff'] != 'undefined', 'missing Wasm export: dynCall_vffff');
+  assert(typeof wasmExports['dynCall_vf'] != 'undefined', 'missing Wasm export: dynCall_vf');
+  assert(typeof wasmExports['dynCall_viiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiii');
+  assert(typeof wasmExports['dynCall_viiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiiiii');
+  assert(typeof wasmExports['dynCall_i'] != 'undefined', 'missing Wasm export: dynCall_i');
+  assert(typeof wasmExports['dynCall_vff'] != 'undefined', 'missing Wasm export: dynCall_vff');
+  assert(typeof wasmExports['dynCall_viiiiiii'] != 'undefined', 'missing Wasm export: dynCall_viiiiiii');
+  assert(typeof wasmExports['dynCall_vfi'] != 'undefined', 'missing Wasm export: dynCall_vfi');
+  assert(typeof wasmExports['dynCall_viif'] != 'undefined', 'missing Wasm export: dynCall_viif');
+  assert(typeof wasmExports['dynCall_vif'] != 'undefined', 'missing Wasm export: dynCall_vif');
+  assert(typeof wasmExports['dynCall_vifff'] != 'undefined', 'missing Wasm export: dynCall_vifff');
+  assert(typeof wasmExports['dynCall_viffff'] != 'undefined', 'missing Wasm export: dynCall_viffff');
+  assert(typeof wasmExports['dynCall_vfff'] != 'undefined', 'missing Wasm export: dynCall_vfff');
+  assert(typeof wasmExports['dynCall_jiji'] != 'undefined', 'missing Wasm export: dynCall_jiji');
+  assert(typeof wasmExports['dynCall_iidiiiii'] != 'undefined', 'missing Wasm export: dynCall_iidiiiii');
+  assert(typeof wasmExports['dynCall_viijii'] != 'undefined', 'missing Wasm export: dynCall_viijii');
+  assert(typeof wasmExports['dynCall_iiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiii');
+  assert(typeof wasmExports['dynCall_iiiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiiii');
+  assert(typeof wasmExports['dynCall_iiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiii');
+  assert(typeof wasmExports['dynCall_iiiiij'] != 'undefined', 'missing Wasm export: dynCall_iiiiij');
+  assert(typeof wasmExports['dynCall_iiiiid'] != 'undefined', 'missing Wasm export: dynCall_iiiiid');
+  assert(typeof wasmExports['dynCall_iiiiijj'] != 'undefined', 'missing Wasm export: dynCall_iiiiijj');
+  assert(typeof wasmExports['dynCall_iiiiiiii'] != 'undefined', 'missing Wasm export: dynCall_iiiiiiii');
+  assert(typeof wasmExports['dynCall_iiiiiijj'] != 'undefined', 'missing Wasm export: dynCall_iiiiiijj');
+  assert(typeof wasmExports['asyncify_start_unwind'] != 'undefined', 'missing Wasm export: asyncify_start_unwind');
+  assert(typeof wasmExports['asyncify_stop_unwind'] != 'undefined', 'missing Wasm export: asyncify_stop_unwind');
+  assert(typeof wasmExports['asyncify_start_rewind'] != 'undefined', 'missing Wasm export: asyncify_start_rewind');
+  assert(typeof wasmExports['asyncify_stop_rewind'] != 'undefined', 'missing Wasm export: asyncify_stop_rewind');
+  assert(typeof wasmExports['memory'] != 'undefined', 'missing Wasm export: memory');
+  assert(typeof wasmExports['__indirect_function_table'] != 'undefined', 'missing Wasm export: __indirect_function_table');
+  _main = Module['_main'] = createExportWrapper('main', wasmExports['main'], 2);
+  _malloc = createExportWrapper('malloc', wasmExports['malloc'], 1);
+  _free = createExportWrapper('free', wasmExports['free'], 1);
+  _fflush = createExportWrapper('fflush', wasmExports['fflush'], 1);
+  _emscripten_stack_get_end = wasmExports['emscripten_stack_get_end'];
+  _emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'];
+  _strerror = createExportWrapper('strerror', wasmExports['strerror'], 1);
+  _emscripten_stack_init = wasmExports['emscripten_stack_init'];
+  _emscripten_stack_get_free = wasmExports['emscripten_stack_get_free'];
   __emscripten_stack_restore = wasmExports['_emscripten_stack_restore'];
   __emscripten_stack_alloc = wasmExports['_emscripten_stack_alloc'];
   _emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'];
+  dynCall_vi = dynCalls['vi'] = createExportWrapper('dynCall_vi', wasmExports['dynCall_vi'], 2);
+  dynCall_v = dynCalls['v'] = createExportWrapper('dynCall_v', wasmExports['dynCall_v'], 1);
+  dynCall_ii = dynCalls['ii'] = createExportWrapper('dynCall_ii', wasmExports['dynCall_ii'], 2);
+  dynCall_iii = dynCalls['iii'] = createExportWrapper('dynCall_iii', wasmExports['dynCall_iii'], 3);
+  dynCall_vii = dynCalls['vii'] = createExportWrapper('dynCall_vii', wasmExports['dynCall_vii'], 3);
+  dynCall_viii = dynCalls['viii'] = createExportWrapper('dynCall_viii', wasmExports['dynCall_viii'], 4);
+  dynCall_viff = dynCalls['viff'] = createExportWrapper('dynCall_viff', wasmExports['dynCall_viff'], 4);
+  dynCall_viiiii = dynCalls['viiiii'] = createExportWrapper('dynCall_viiiii', wasmExports['dynCall_viiiii'], 6);
+  dynCall_viiii = dynCalls['viiii'] = createExportWrapper('dynCall_viiii', wasmExports['dynCall_viiii'], 5);
+  dynCall_vidd = dynCalls['vidd'] = createExportWrapper('dynCall_vidd', wasmExports['dynCall_vidd'], 4);
+  dynCall_iiii = dynCalls['iiii'] = createExportWrapper('dynCall_iiii', wasmExports['dynCall_iiii'], 4);
+  dynCall_iiiiii = dynCalls['iiiiii'] = createExportWrapper('dynCall_iiiiii', wasmExports['dynCall_iiiiii'], 6);
+  dynCall_viiiiii = dynCalls['viiiiii'] = createExportWrapper('dynCall_viiiiii', wasmExports['dynCall_viiiiii'], 7);
+  dynCall_vffff = dynCalls['vffff'] = createExportWrapper('dynCall_vffff', wasmExports['dynCall_vffff'], 5);
+  dynCall_vf = dynCalls['vf'] = createExportWrapper('dynCall_vf', wasmExports['dynCall_vf'], 2);
+  dynCall_viiiiiiii = dynCalls['viiiiiiii'] = createExportWrapper('dynCall_viiiiiiii', wasmExports['dynCall_viiiiiiii'], 9);
+  dynCall_viiiiiiiii = dynCalls['viiiiiiiii'] = createExportWrapper('dynCall_viiiiiiiii', wasmExports['dynCall_viiiiiiiii'], 10);
+  dynCall_i = dynCalls['i'] = createExportWrapper('dynCall_i', wasmExports['dynCall_i'], 1);
+  dynCall_vff = dynCalls['vff'] = createExportWrapper('dynCall_vff', wasmExports['dynCall_vff'], 3);
+  dynCall_viiiiiii = dynCalls['viiiiiii'] = createExportWrapper('dynCall_viiiiiii', wasmExports['dynCall_viiiiiii'], 8);
+  dynCall_vfi = dynCalls['vfi'] = createExportWrapper('dynCall_vfi', wasmExports['dynCall_vfi'], 3);
+  dynCall_viif = dynCalls['viif'] = createExportWrapper('dynCall_viif', wasmExports['dynCall_viif'], 4);
+  dynCall_vif = dynCalls['vif'] = createExportWrapper('dynCall_vif', wasmExports['dynCall_vif'], 3);
+  dynCall_vifff = dynCalls['vifff'] = createExportWrapper('dynCall_vifff', wasmExports['dynCall_vifff'], 5);
+  dynCall_viffff = dynCalls['viffff'] = createExportWrapper('dynCall_viffff', wasmExports['dynCall_viffff'], 6);
+  dynCall_vfff = dynCalls['vfff'] = createExportWrapper('dynCall_vfff', wasmExports['dynCall_vfff'], 4);
+  dynCall_jiji = dynCalls['jiji'] = createExportWrapper('dynCall_jiji', wasmExports['dynCall_jiji'], 4);
+  dynCall_iidiiiii = dynCalls['iidiiiii'] = createExportWrapper('dynCall_iidiiiii', wasmExports['dynCall_iidiiiii'], 8);
+  dynCall_viijii = dynCalls['viijii'] = createExportWrapper('dynCall_viijii', wasmExports['dynCall_viijii'], 6);
+  dynCall_iiiii = dynCalls['iiiii'] = createExportWrapper('dynCall_iiiii', wasmExports['dynCall_iiiii'], 5);
+  dynCall_iiiiiiiii = dynCalls['iiiiiiiii'] = createExportWrapper('dynCall_iiiiiiiii', wasmExports['dynCall_iiiiiiiii'], 9);
+  dynCall_iiiiiii = dynCalls['iiiiiii'] = createExportWrapper('dynCall_iiiiiii', wasmExports['dynCall_iiiiiii'], 7);
+  dynCall_iiiiij = dynCalls['iiiiij'] = createExportWrapper('dynCall_iiiiij', wasmExports['dynCall_iiiiij'], 6);
+  dynCall_iiiiid = dynCalls['iiiiid'] = createExportWrapper('dynCall_iiiiid', wasmExports['dynCall_iiiiid'], 6);
+  dynCall_iiiiijj = dynCalls['iiiiijj'] = createExportWrapper('dynCall_iiiiijj', wasmExports['dynCall_iiiiijj'], 7);
+  dynCall_iiiiiiii = dynCalls['iiiiiiii'] = createExportWrapper('dynCall_iiiiiiii', wasmExports['dynCall_iiiiiiii'], 8);
+  dynCall_iiiiiijj = dynCalls['iiiiiijj'] = createExportWrapper('dynCall_iiiiiijj', wasmExports['dynCall_iiiiiijj'], 8);
+  _asyncify_start_unwind = createExportWrapper('asyncify_start_unwind', wasmExports['asyncify_start_unwind'], 1);
+  _asyncify_stop_unwind = createExportWrapper('asyncify_stop_unwind', wasmExports['asyncify_stop_unwind'], 0);
+  _asyncify_start_rewind = createExportWrapper('asyncify_start_rewind', wasmExports['asyncify_start_rewind'], 1);
+  _asyncify_stop_rewind = createExportWrapper('asyncify_stop_rewind', wasmExports['asyncify_stop_rewind'], 0);
   memory = wasmMemory = wasmExports['memory'];
-  __indirect_function_table = wasmTable = wasmExports['__indirect_function_table'];
+  __indirect_function_table = wasmExports['__indirect_function_table'];
 }
 
 var wasmImports = {
@@ -9395,7 +10874,11 @@ var wasmImports = {
 // include: postamble.js
 // === Auto-generated postamble setup entry stuff ===
 
+var calledRun;
+
 function callMain() {
+  assert(runDependencies == 0, 'cannot call main when async dependencies remain! (listen on Module["onRuntimeInitialized"])');
+  assert(typeof onPreRuns === 'undefined' || onPreRuns.length == 0, 'cannot call main when preRun functions remain to be called');
 
   var entryFunction = _main;
 
@@ -9414,7 +10897,20 @@ function callMain() {
   }
 }
 
+function stackCheckInit() {
+  // This is normally called automatically during __wasm_call_ctors but need to
+  // get these values before even running any of the ctors so we call it redundantly
+  // here.
+  _emscripten_stack_init();
+  // TODO(sbc): Move writeStackCookie to native to to avoid this.
+  writeStackCookie();
+}
+
 async function run() {
+  assert(!calledRun);
+  calledRun = true;
+
+  stackCheckInit();
 
   preRun();
 
@@ -9438,11 +10934,51 @@ async function run() {
   // No ATMAINS hooks
 
   Module['onRuntimeInitialized']?.();
+  consumedModuleProp('onRuntimeInitialized');
 
   var noInitialRun = Module['noInitialRun'] || false;
   if (!noInitialRun) callMain();
 
   postRun();
+}
+
+function checkUnflushedContent() {
+  // Compiler settings do not allow exiting the runtime, so flushing
+  // the streams is not possible. but in ASSERTIONS mode we check
+  // if there was something to flush, and if so tell the user they
+  // should request that the runtime be exitable.
+  // Normally we would not even include flush() at all, but in ASSERTIONS
+  // builds we do so just for this check, and here we see if there is any
+  // content to flush, that is, we check if there would have been
+  // something a non-ASSERTIONS build would have not seen.
+  // How we flush the streams depends on whether we are in SYSCALLS_REQUIRE_FILESYSTEM=0
+  // mode (which has its own special function for this; otherwise, all
+  // the code is inside libc)
+  var oldOut = out;
+  var oldErr = err;
+  var has = false;
+  out = err = (x) => {
+    has = true;
+  }
+  try { // it doesn't matter if it fails
+    _fflush(0);
+    // also flush in the JS FS layer
+    for (var name of ['stdout', 'stderr']) {
+      var info = FS.analyzePath('/dev/' + name);
+      if (!info) return;
+      var stream = info.object;
+      var rdev = stream.rdev;
+      var tty = TTY.ttys[rdev];
+      if (tty?.output?.length) {
+        has = true;
+      }
+    }
+  } catch(e) {}
+  out = oldOut;
+  err = oldErr;
+  if (has) {
+    warnOnce('stdio streams had content in them that was not flushed. you should set EXIT_RUNTIME to 1 (see the Emscripten FAQ), or make sure to emit a newline when you printf etc.');
+  }
 }
 
 var wasmExports;
