@@ -76,7 +76,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: C:\Users\markr\AppData\Local\Temp\tmpyu_m1ruu.js
+// include: C:\Users\markr\AppData\Local\Temp\tmp8s_n0pfu.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -234,21 +234,21 @@ Module['FS_createPath']("/assets", "wilderness_props", true, true);
 
   })();
 
-// end include: C:\Users\markr\AppData\Local\Temp\tmpyu_m1ruu.js
-// include: C:\Users\markr\AppData\Local\Temp\tmptvs4sqxo.js
+// end include: C:\Users\markr\AppData\Local\Temp\tmp8s_n0pfu.js
+// include: C:\Users\markr\AppData\Local\Temp\tmpqahp5gc4.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if ((typeof ENVIRONMENT_IS_WASM_WORKER != 'undefined' && ENVIRONMENT_IS_WASM_WORKER) || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD) || (typeof ENVIRONMENT_IS_AUDIO_WORKLET != 'undefined' && ENVIRONMENT_IS_AUDIO_WORKLET)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: C:\Users\markr\AppData\Local\Temp\tmptvs4sqxo.js
-// include: C:\Users\markr\AppData\Local\Temp\tmp_6yntumi.js
+  // end include: C:\Users\markr\AppData\Local\Temp\tmpqahp5gc4.js
+// include: C:\Users\markr\AppData\Local\Temp\tmpdx5ckr_z.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: C:\Users\markr\AppData\Local\Temp\tmp_6yntumi.js
+  // end include: C:\Users\markr\AppData\Local\Temp\tmpdx5ckr_z.js
 
 
 var programArgs = [];
@@ -390,7 +390,7 @@ if (ENVIRONMENT_IS_WORKER) {
 var out = console.log.bind(console);
 var err = console.error.bind(console);
 
-var IDBFS = 'IDBFS is no longer included by default; build with -lidbfs.js';
+
 var PROXYFS = 'PROXYFS is no longer included by default; build with -lproxyfs.js';
 var WORKERFS = 'WORKERFS is no longer included by default; build with -lworkerfs.js';
 var FETCHFS = 'FETCHFS is no longer included by default; build with -lfetchfs.js';
@@ -1870,6 +1870,387 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       return mode;
     };
   
+  
+  
+  
+  var IDBFS = {
+  dbs:{
+  },
+  indexedDB:() => {
+        assert(typeof indexedDB != 'undefined', 'IDBFS used, but indexedDB not supported');
+        return indexedDB;
+      },
+  DB_VERSION:21,
+  DB_STORE_NAME:"FILE_DATA",
+  queuePersist:(mount) => {
+        function onPersistComplete() {
+          if (mount.idbPersistState === 'again') startPersist(); // If a new sync request has appeared in between, kick off a new sync
+          else {
+            mount.idbPersistState = 0; // Otherwise reset sync state back to idle to wait for a new sync later
+            IDBFS.onAutoPersistStateChanged?.(false);
+          }
+        }
+        function startPersist() {
+          mount.idbPersistState = 'idb'; // Mark that we are currently running a sync operation
+          IDBFS.onAutoPersistStateChanged?.(true);
+          IDBFS.syncfs(mount, /*populate:*/false, onPersistComplete);
+        }
+  
+        if (!mount.idbPersistState) {
+          // Programs typically write/copy/move multiple files in the in-memory
+          // filesystem within a single app frame, so when a filesystem sync
+          // command is triggered, do not start it immediately, but only after
+          // the current frame is finished. This way all the modified files
+          // inside the main loop tick will be batched up to the same sync.
+          mount.idbPersistState = setTimeout(startPersist, 0);
+        } else if (mount.idbPersistState === 'idb') {
+          // There is an active IndexedDB sync operation in-flight, but we now
+          // have accumulated more files to sync. We should therefore queue up
+          // a new sync after the current one finishes so that all writes
+          // will be properly persisted.
+          mount.idbPersistState = 'again';
+        }
+      },
+  mount:(mount) => {
+        // reuse core MEMFS functionality
+        var mnt = MEMFS.mount(mount);
+        // If the automatic IDBFS persistence option has been selected, then automatically persist
+        // all modifications to the filesystem as they occur.
+        if (mount?.opts?.autoPersist) {
+          mount.idbPersistState = 0; // IndexedDB sync starts in idle state
+          var memfs_node_ops = mnt.node_ops;
+          mnt.node_ops = {...mnt.node_ops}; // Clone node_ops to inject write tracking
+          mnt.node_ops.mknod = (parent, name, mode, dev) => {
+            var node = memfs_node_ops.mknod(parent, name, mode, dev);
+            // Propagate injected node_ops to the newly created child node
+            node.node_ops = mnt.node_ops;
+            // Remember for each IDBFS node which IDBFS mount point they came from so we know which mount to persist on modification.
+            node.idbfs_mount = mnt.mount;
+            // Remember original MEMFS stream_ops for this node
+            node.memfs_stream_ops = node.stream_ops;
+            // Clone stream_ops to inject write tracking
+            node.stream_ops = {...node.stream_ops};
+  
+            // Track all file writes
+            node.stream_ops.write = (stream, buffer, offset, length, position, canOwn) => {
+              // This file has been modified, we must persist IndexedDB when this file closes
+              stream.node.isModified = true;
+              return node.memfs_stream_ops.write(stream, buffer, offset, length, position, canOwn);
+            };
+  
+            // Persist IndexedDB on file close
+            node.stream_ops.close = (stream) => {
+              var n = stream.node;
+              if (n.isModified) {
+                IDBFS.queuePersist(n.idbfs_mount);
+                n.isModified = false;
+              }
+              if (n.memfs_stream_ops.close) return n.memfs_stream_ops.close(stream);
+            };
+  
+            // Persist the node we just created to IndexedDB
+            IDBFS.queuePersist(mnt.mount);
+  
+            return node;
+          };
+          // Also kick off persisting the filesystem on other operations that modify the filesystem.
+          mnt.node_ops.rmdir   = (...args) => (IDBFS.queuePersist(mnt.mount), memfs_node_ops.rmdir(...args));
+          mnt.node_ops.symlink = (...args) => (IDBFS.queuePersist(mnt.mount), memfs_node_ops.symlink(...args));
+          mnt.node_ops.unlink  = (...args) => (IDBFS.queuePersist(mnt.mount), memfs_node_ops.unlink(...args));
+          mnt.node_ops.rename  = (...args) => (IDBFS.queuePersist(mnt.mount), memfs_node_ops.rename(...args));
+        }
+        return mnt;
+      },
+  syncfs:(mount, populate, callback) => {
+        IDBFS.getLocalSet(mount, (err, local) => {
+          if (err) return callback(err);
+  
+          IDBFS.getRemoteSet(mount, (err, remote) => {
+            if (err) return callback(err);
+  
+            var src = populate ? remote : local;
+            var dst = populate ? local : remote;
+  
+            IDBFS.reconcile(src, dst, callback);
+          });
+        });
+      },
+  quit:() => {
+        for (var value of Object.values(IDBFS.dbs)) {
+          value.close()
+        }
+        IDBFS.dbs = {};
+      },
+  getDB:(name, callback) => {
+        // check the cache first
+        var db = IDBFS.dbs[name];
+        if (db) {
+          return callback(null, db);
+        }
+  
+        var req;
+        try {
+          req = IDBFS.indexedDB().open(name, IDBFS.DB_VERSION);
+        } catch (e) {
+          return callback(e);
+        }
+        if (!req) {
+          return callback('Unable to connect to IndexedDB');
+        }
+        req.onupgradeneeded = (e) => {
+          var db = /** @type {IDBDatabase} */ (e.target.result);
+          var transaction = e.target.transaction;
+  
+          var fileStore;
+  
+          if (db.objectStoreNames.contains(IDBFS.DB_STORE_NAME)) {
+            fileStore = transaction.objectStore(IDBFS.DB_STORE_NAME);
+          } else {
+            fileStore = db.createObjectStore(IDBFS.DB_STORE_NAME);
+          }
+  
+          if (!fileStore.indexNames.contains('timestamp')) {
+            fileStore.createIndex('timestamp', 'timestamp', { unique: false });
+          }
+        };
+        req.onsuccess = () => {
+          db = /** @type {IDBDatabase} */ (req.result);
+  
+          // add to the cache
+          IDBFS.dbs[name] = db;
+          callback(null, db);
+        };
+        req.onerror = (e) => {
+          callback(e.target.error);
+          e.preventDefault();
+        };
+      },
+  getLocalSet:(mount, callback) => {
+        var entries = {};
+  
+        function isRealDir(p) {
+          return p !== '.' && p !== '..';
+        };
+        function toAbsolute(root) {
+          return (p) => PATH.join2(root, p);
+        };
+  
+        var check = FS.readdir(mount.mountpoint).filter(isRealDir).map(toAbsolute(mount.mountpoint));
+  
+        while (check.length) {
+          var path = check.pop();
+          var stat;
+  
+          try {
+            stat = FS.lstat(path);
+          } catch (e) {
+            return callback(e);
+          }
+  
+          if (FS.isDir(stat.mode)) {
+            check.push(...FS.readdir(path).filter(isRealDir).map(toAbsolute(path)));
+          }
+  
+          entries[path] = { 'timestamp': stat.mtime };
+        }
+  
+        return callback(null, { type: 'local', entries: entries });
+      },
+  getRemoteSet:(mount, callback) => {
+        var entries = {};
+  
+        IDBFS.getDB(mount.mountpoint, (err, db) => {
+          if (err) return callback(err);
+  
+          try {
+            var transaction = db.transaction([IDBFS.DB_STORE_NAME], 'readonly');
+            transaction.onerror = (e) => {
+              callback(e.target.error);
+              e.preventDefault();
+            };
+  
+            var store = transaction.objectStore(IDBFS.DB_STORE_NAME);
+            var index = store.index('timestamp');
+  
+            index.openKeyCursor().onsuccess = (event) => {
+              var cursor = event.target.result;
+  
+              if (!cursor) {
+                return callback(null, { type: 'remote', db, entries });
+              }
+  
+              entries[cursor.primaryKey] = { 'timestamp': cursor.key };
+  
+              cursor.continue();
+            };
+          } catch (e) {
+            return callback(e);
+          }
+        });
+      },
+  loadLocalEntry:(path, callback) => {
+        var stat, node;
+  
+        try {
+          var lookup = FS.lookupPath(path);
+          node = lookup.node;
+          stat = FS.lstat(path);
+        } catch (e) {
+          return callback(e);
+        }
+  
+        if (FS.isDir(stat.mode)) {
+          return callback(null, { 'timestamp': stat.mtime, 'mode': stat.mode });
+        } else if (FS.isLink(stat.mode)) {
+          return callback(null, { 'timestamp': stat.mtime, 'mode': stat.mode, 'link': node.link, });
+        } else if (FS.isFile(stat.mode)) {
+          // Performance consideration: storing a normal JavaScript array to a IndexedDB is much slower than storing a typed array.
+          // Therefore always convert the file contents to a typed array first before writing the data to IndexedDB.
+          node.contents = MEMFS.getFileDataAsTypedArray(node);
+          return callback(null, { 'timestamp': stat.mtime, 'mode': stat.mode, 'contents': node.contents });
+        } else {
+          return callback(new Error('node type not supported'));
+        }
+      },
+  storeLocalEntry:(path, entry, callback) => {
+        try {
+          if (FS.isDir(entry['mode'])) {
+            FS.mkdirTree(path, entry['mode']);
+          } else if (FS.isLink(entry['mode'])) {
+            FS.symlink(entry['link'], path);
+          } else if (FS.isFile(entry['mode'])) {
+            FS.writeFile(path, entry['contents'], { canOwn: true });
+          } else {
+            return callback(new Error('node type not supported'));
+          }
+  
+          FS.chmod(path, entry['mode']);
+          FS.utime(path, entry['timestamp'], entry['timestamp']);
+        } catch (e) {
+          return callback(e);
+        }
+  
+        callback(null);
+      },
+  removeLocalEntry:(path, callback) => {
+        try {
+          var stat = FS.lstat(path);
+  
+          if (FS.isDir(stat.mode)) {
+            FS.rmdir(path);
+          } else {
+            FS.unlink(path);
+          }
+        } catch (e) {
+          return callback(e);
+        }
+  
+        callback(null);
+      },
+  loadRemoteEntry:(store, path, callback) => {
+        var req = store.get(path);
+        req.onsuccess = (event) => callback(null, event.target.result);
+        req.onerror = (e) => {
+          callback(e.target.error);
+          e.preventDefault();
+        };
+      },
+  storeRemoteEntry:(store, path, entry, callback) => {
+        try {
+          var req = store.put(entry, path);
+        } catch (e) {
+          callback(e);
+          return;
+        }
+        req.onsuccess = (event) => callback();
+        req.onerror = (e) => {
+          callback(e.target.error);
+          e.preventDefault();
+        };
+      },
+  removeRemoteEntry:(store, path, callback) => {
+        var req = store.delete(path);
+        req.onsuccess = (event) => callback();
+        req.onerror = (e) => {
+          callback(e.target.error);
+          e.preventDefault();
+        };
+      },
+  reconcile:(src, dst, callback) => {
+        var total = 0;
+  
+        var create = [];
+        for (var [key, e] of Object.entries(src.entries)) {
+          var e2 = dst.entries[key];
+          if (!e2 || e['timestamp'].getTime() != e2['timestamp'].getTime()) {
+            create.push(key);
+            total++;
+          }
+        }
+  
+        var remove = [];
+        for (var key of Object.keys(dst.entries)) {
+          if (!src.entries[key]) {
+            remove.push(key);
+            total++;
+          }
+        }
+  
+        if (!total) {
+          return callback(null);
+        }
+  
+        var errored = false;
+        var db = src.type === 'remote' ? src.db : dst.db;
+        var transaction = db.transaction([IDBFS.DB_STORE_NAME], 'readwrite');
+        var store = transaction.objectStore(IDBFS.DB_STORE_NAME);
+  
+        function done(err) {
+          if (err && !errored) {
+            errored = true;
+            return callback(err);
+          }
+        };
+  
+        // transaction may abort if (for example) there is a QuotaExceededError
+        transaction.onerror = transaction.onabort = (e) => {
+          done(e.target.error);
+          e.preventDefault();
+        };
+  
+        transaction.oncomplete = (e) => {
+          if (!errored) {
+            callback(null);
+          }
+        };
+  
+        // sort paths in ascending order so directory entries are created
+        // before the files inside them
+        for (const path of create.sort()) {
+          if (dst.type === 'local') {
+            IDBFS.loadRemoteEntry(store, path, (err, entry) => {
+              if (err) return done(err);
+              IDBFS.storeLocalEntry(path, entry, done);
+            });
+          } else {
+            IDBFS.loadLocalEntry(path, (err, entry) => {
+              if (err) return done(err);
+              IDBFS.storeRemoteEntry(store, path, entry, done);
+            });
+          }
+        }
+  
+        // sort paths in descending order so files are deleted before their
+        // parent directories
+        for (var path of remove.sort().reverse()) {
+          if (dst.type === 'local') {
+            IDBFS.removeLocalEntry(path, done);
+          } else {
+            IDBFS.removeRemoteEntry(store, path, done);
+          }
+        }
+      },
+  };
   
   
   
@@ -3499,6 +3880,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   
         FS.filesystems = {
           'MEMFS': MEMFS,
+          'IDBFS': IDBFS,
         };
       },
   init(input, output, error) {
@@ -9762,6 +10144,7 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'print',
   'printErr',
   'jstoi_s',
+  'IDBFS',
 ];
 unexportedSymbols.forEach(unexportedRuntimeSymbol);
 
@@ -9801,49 +10184,52 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('wasmBinary');
 }
 var ASM_CONSTS = {
-  147136: () => { if (document.fullscreenElement) return 1; },  
- 147182: () => { return document.getElementById('canvas').width; },  
- 147234: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 147302: () => { document.exitFullscreen(); },  
- 147329: () => { setTimeout(function() { Module.requestFullscreen(false, false); }, 100); },  
- 147402: () => { if (document.fullscreenElement) return 1; },  
- 147448: () => { return document.getElementById('canvas').width; },  
- 147500: () => { return screen.width; },  
- 147525: () => { document.exitFullscreen(); },  
- 147552: () => { setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { canvas.style.width="unset"; }, 100); }, 100); },  
- 147685: () => { return window.innerWidth; },  
- 147711: () => { return window.innerHeight; },  
- 147738: () => { if (document.fullscreenElement) return 1; },  
- 147784: () => { return document.getElementById('canvas').width; },  
- 147836: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 147904: () => { if (document.fullscreenElement) return 1; },  
- 147950: () => { return document.getElementById('canvas').width; },  
- 148002: () => { return screen.width; },  
- 148027: () => { return window.innerWidth; },  
- 148053: () => { return window.innerHeight; },  
- 148080: () => { if (document.fullscreenElement) return 1; },  
- 148126: () => { return document.getElementById('canvas').width; },  
- 148178: () => { return screen.width; },  
- 148203: () => { document.exitFullscreen(); },  
- 148230: () => { if (document.fullscreenElement) return 1; },  
- 148276: () => { return document.getElementById('canvas').width; },  
- 148328: () => { return parseInt(document.getElementById('canvas').style.width); },  
- 148396: () => { document.exitFullscreen(); },  
- 148423: ($0) => { document.getElementById('canvas').style.opacity = $0; },  
- 148481: () => { return screen.width; },  
- 148506: () => { return screen.height; },  
- 148532: () => { return window.screenX; },  
- 148559: () => { return window.screenY; },  
- 148586: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 148639: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
- 148710: () => { document.getElementById('canvas').style.cursor = 'none'; },  
- 148767: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
- 149023: ($0) => { document.getElementById('canvas').style.cursor = UTF8ToString($0); },  
- 149094: () => { if (document.fullscreenElement) return 1; },  
- 149140: () => { return window.innerWidth; },  
- 149166: () => { return window.innerHeight; },  
- 149193: () => { if (document.pointerLockElement) return 1; }
+  147590: () => { if (document.fullscreenElement) return 1; },  
+ 147636: () => { return document.getElementById('canvas').width; },  
+ 147688: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 147756: () => { document.exitFullscreen(); },  
+ 147783: () => { setTimeout(function() { Module.requestFullscreen(false, false); }, 100); },  
+ 147856: () => { if (document.fullscreenElement) return 1; },  
+ 147902: () => { return document.getElementById('canvas').width; },  
+ 147954: () => { return screen.width; },  
+ 147979: () => { document.exitFullscreen(); },  
+ 148006: () => { setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { canvas.style.width="unset"; }, 100); }, 100); },  
+ 148139: () => { return window.innerWidth; },  
+ 148165: () => { return window.innerHeight; },  
+ 148192: () => { if (document.fullscreenElement) return 1; },  
+ 148238: () => { return document.getElementById('canvas').width; },  
+ 148290: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 148358: () => { if (document.fullscreenElement) return 1; },  
+ 148404: () => { return document.getElementById('canvas').width; },  
+ 148456: () => { return screen.width; },  
+ 148481: () => { return window.innerWidth; },  
+ 148507: () => { return window.innerHeight; },  
+ 148534: () => { if (document.fullscreenElement) return 1; },  
+ 148580: () => { return document.getElementById('canvas').width; },  
+ 148632: () => { return screen.width; },  
+ 148657: () => { document.exitFullscreen(); },  
+ 148684: () => { if (document.fullscreenElement) return 1; },  
+ 148730: () => { return document.getElementById('canvas').width; },  
+ 148782: () => { return parseInt(document.getElementById('canvas').style.width); },  
+ 148850: () => { document.exitFullscreen(); },  
+ 148877: ($0) => { document.getElementById('canvas').style.opacity = $0; },  
+ 148935: () => { return screen.width; },  
+ 148960: () => { return screen.height; },  
+ 148986: () => { return window.screenX; },  
+ 149013: () => { return window.screenY; },  
+ 149040: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 149093: ($0) => { document.getElementById("canvas").style.cursor = UTF8ToString($0); },  
+ 149164: () => { document.getElementById('canvas').style.cursor = 'none'; },  
+ 149221: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
+ 149477: ($0) => { document.getElementById('canvas').style.cursor = UTF8ToString($0); },  
+ 149548: () => { if (document.fullscreenElement) return 1; },  
+ 149594: () => { return window.innerWidth; },  
+ 149620: () => { return window.innerHeight; },  
+ 149647: () => { if (document.pointerLockElement) return 1; }
 };
+function JS_InitPersistence() { try { FS.mkdir('/persist'); } catch (e) {} FS.mount(IDBFS, {}, '/persist'); FS.syncfs(true, function(err) { if (err) console.error('Town Forge: IDBFS initial load failed', err); Module._TF_persistReady = 1; }); }
+function JS_PersistReady() { return (typeof Module._TF_persistReady !== 'undefined' && Module._TF_persistReady) ? 1 : 0; }
+function JS_FlushPersistence() { FS.syncfs(false, function(err) { if (err) console.error('Town Forge: IDBFS save flush failed', err); }); }
 
 // Imports from the Wasm binary.
 var _main = Module['_main'] = makeInvalidEarlyAccess('_main');
@@ -9895,6 +10281,12 @@ function assignWasmExports(wasmExports) {
 }
 
 var wasmImports = {
+  /** @export */
+  JS_FlushPersistence,
+  /** @export */
+  JS_InitPersistence,
+  /** @export */
+  JS_PersistReady,
   /** @export */
   __assert_fail: ___assert_fail,
   /** @export */
