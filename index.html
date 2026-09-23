@@ -103,15 +103,23 @@ jwE50AGjLCVuS8Yt4H7OgZLKK5EKOsLviEWJSL/+0uMi7gLUSBseYwqEbXvSHCec1CJvZPyHCmYQffaB
         /* Scales to fill whatever space .emscripten_border's flexbox gives it, locked to
            the game's actual internal resolution (540x900, kScreenW/kScreenH in main.cpp)
            so it's never distorted — only letterboxed (or, past 100%, cropped by the
-           parent's overflow:hidden). The 112.5% (not 100%) is a deliberate ~12.5% zoom
-           Mark asked for ("zoom in the whole view 10-15%") — matches kZoom in main.cpp,
-           which does the equivalent for the desktop build via a scaled-up window instead
-           (a web canvas's on-screen size is controlled entirely by this CSS, independent
-           of the canvas's internal pixel resolution, so the desktop fix doesn't apply
-           here — this rule is what actually makes web bigger). Update both together if
-           the zoom amount ever changes. */
-        max-width: 112.5%;
-        max-height: 112.5%;
+           parent's overflow:hidden). Past 100% is a deliberate zoom Mark asked for
+           ("zoom in the whole view 10-15%") — matches the *idea* of kZoom in main.cpp
+           (desktop's equivalent, via a scaled-up window instead), but the two are no
+           longer the same number on purpose: desktop's zoom just grows the window, so
+           nothing is ever lost; web's zoom oversizes the canvas and lets the parent's
+           overflow:hidden crop the excess evenly off all four edges, which — at the
+           original 112.5% — was cropping ~6.25% off each edge and cutting into
+           edge-anchored UI (vendor list items on the left, the Wilderness gate icon and
+           hotbar buttons on the bottom), worse still on mobile when the browser's own
+           address bar shrinks the visible viewport further (2026-09-23, reported by
+           Mark). Dialed back to 105% (~2.5% cropped per edge) to keep most of the
+           "bigger" feel while giving edge-anchored UI enough room to survive — if edge
+           clipping is ever reported again, reduce this further (or drop to 100%,
+           removing the web zoom entirely) rather than chasing it screen-by-screen with
+           UI margin. */
+        max-width: 105%;
+        max-height: 105%;
         width: auto;
         height: auto;
         aspect-ratio: 540 / 900;
