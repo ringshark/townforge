@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ringshark/townforge-source
-          ref: b59d188e539a79f8115498be8d4f473764927ce6
+          ref: c780e0bec031dd9a604c5b896eb1117d91660d7c
           path: source
       - name: Check published source
         id: changed
