@@ -1,4 +1,4 @@
-# Homestead release: 8201d1719184a3bdc8e8b4ff6325b8e714535c43
+# Homestead life release: e88d1d27a80649c8730fc68dfb202b85b80c5b7a
 name: Build and publish Town Forge 2D
 on:
   push:
@@ -71,8 +71,10 @@ jobs:
           make -C /tmp/raylib/src PLATFORM=PLATFORM_WEB -j2
           g++ -std=c++17 -I /tmp/raylib/src tests/town-2d-art.cpp -o /tmp/tf-art-test
           /tmp/tf-art-test
+          g++ -std=c++17 tests/homestead-life.cpp -o /tmp/tf-homestead-life
+          /tmp/tf-homestead-life
           RAYLIB_DIR=/tmp/raylib python tests/avatar-motion.py
-          RAYLIB_DIR=/tmp/raylib python tests/landscape-menus.py
+          TF_HOMESTEAD_FIXTURE=/tmp/tf-homestead-fixture.txt RAYLIB_DIR=/tmp/raylib python tests/landscape-menus.py
           RAYLIB_DIR=/tmp/raylib TF_VARIANT=2d bash web/build_web.sh
       - name: Preserve online configuration and the games hub
         if: steps.changed.outputs.build == 'true'
@@ -101,6 +103,7 @@ jobs:
           trap 'kill "$server_pid"' EXIT
           NODE_PATH=/tmp/tf-browser/node_modules node tests/town-2d-web.cjs
           TF_BROWSER=webkit NODE_PATH=/tmp/tf-browser/node_modules node tests/town-2d-web.cjs
+          NODE_PATH=/tmp/tf-browser/node_modules node tests/homestead-web.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
