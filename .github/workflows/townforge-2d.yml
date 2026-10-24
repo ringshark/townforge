@@ -1,3 +1,4 @@
+# Graphics release: 72a61612b55c519e2d05f470da56062c182a4ecc
 name: Build and publish Town Forge 2D
 on:
   push:
