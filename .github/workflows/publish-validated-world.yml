@@ -1,0 +1,48 @@
+name: Publish validated Town Forge world
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-validated-world.yml']
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: townforge-2d-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: townforge-validated-world
+          run-id: 40050463842
+          github-token: ${{ github.token }}
+          path: site
+      - name: Verify the tested release
+        run: |
+          test "$(cat site/source-version.txt)" = "4d48d57559153da77325941140b26a3f8db1eae6"
+          cp site/source-version.txt site/validated-source-version.txt
+          echo '670395dc2cea10387c6f0463aea5456ded1929ce' > site/source-version.txt
+      - name: Let the repository branch deployment finish first
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in $(seq 1 30); do
+            status=$(gh api "repos/${{ github.repository }}/actions/runs?head_sha=${{ github.sha }}" --jq '[.workflow_runs[] | select(.name == "pages build and deployment")] | if length == 0 then "waiting" else .[0].status end' || true)
+            if [ "$status" = "completed" ]; then break; fi
+            sleep 4
+          done
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - uses: actions/deploy-pages@v4
+        id: deployment
