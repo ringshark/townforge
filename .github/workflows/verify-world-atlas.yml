@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ringshark/townforge-source
-          ref: f13702d1d80d4ed6e1b22db51dd72b2f3b5983a8
+          ref: c6bf04e13a475eccabd2ea910298fc4dd4bd5e9c
           path: source
       - name: Check published source
         id: changed
@@ -68,6 +68,8 @@ jobs:
           /tmp/tf-art-test
           g++ -std=c++17 tests/atlas-geometry.cpp -o /tmp/tf-atlas-test
           /tmp/tf-atlas-test
+          g++ -std=c++17 tests/atlas-raster.cpp -o /tmp/tf-atlas-raster
+          /tmp/tf-atlas-raster
           g++ -std=c++17 tests/homestead-life.cpp -o /tmp/tf-homestead-life
           /tmp/tf-homestead-life
           RAYLIB_DIR=/tmp/raylib python tests/avatar-motion.py
