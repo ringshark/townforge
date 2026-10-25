@@ -22,15 +22,15 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: townforge-validated-world
-          run-id: 40050463842
+          name: atlas-validated-site
+          run-id: 40214915609
           github-token: ${{ github.token }}
           path: site
       - name: Verify the tested release
         run: |
-          test "$(cat site/source-version.txt)" = "4d48d57559153da77325941140b26a3f8db1eae6"
+          test "$(cat site/source-version.txt)" = "b320d15dc1b4fe6fa167742b755de4beb4f4e84a"
           cp site/source-version.txt site/validated-source-version.txt
-          echo '670395dc2cea10387c6f0463aea5456ded1929ce' > site/source-version.txt
+          echo '4c357d8defa1c6038d54fb0737a2d88f386f87ed' > site/source-version.txt
       - name: Let the repository branch deployment finish first
         env:
           GH_TOKEN: ${{ github.token }}
