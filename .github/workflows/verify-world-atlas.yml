@@ -9,7 +9,7 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: townforge-atlas-verification
+  group: townforge-atlas-1606ea5d
   cancel-in-progress: true
 jobs:
   publish:
