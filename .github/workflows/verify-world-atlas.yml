@@ -9,7 +9,7 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: townforge-atlas-591b280c
+  group: townforge-atlas-final
   cancel-in-progress: true
 jobs:
   publish:
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ringshark/townforge-source
-          ref: 591b280c98ac7a3a3ddb62dd0a9545478b83bf02
+          ref: 1b387b00b94517a6ac9edbe0a9568ed3edb82268
           path: source
       - name: Check published source
         id: changed
