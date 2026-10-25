@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ringshark/townforge-source
-          ref: a864570009111c0c544f9f7e4dfbbfc8f99ee7c7
+          ref: 1606ea5d30a0826120884441d696a3a2ce31b7e3
           path: source
       - name: Check published source
         id: changed
@@ -91,6 +91,11 @@ jobs:
           if [ -d ../current-site/games ]; then cp -r ../current-site/games site/games; fi
           git rev-parse HEAD > site/source-version.txt
           touch site/.nojekyll
+      - uses: actions/upload-artifact@v4
+        with:
+          name: atlas-candidate-site
+          path: source/site
+          retention-days: 3
       - name: Verify desktop and phone rendering
         if: steps.changed.outputs.build == 'true'
         working-directory: source
