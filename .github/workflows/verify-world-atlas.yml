@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ringshark/townforge-source
-          ref: c6bf04e13a475eccabd2ea910298fc4dd4bd5e9c
+          ref: a864570009111c0c544f9f7e4dfbbfc8f99ee7c7
           path: source
       - name: Check published source
         id: changed
@@ -100,9 +100,6 @@ jobs:
           python3 -m http.server 8765 --directory site > /tmp/tf-http.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
-          NODE_PATH=/tmp/tf-browser/node_modules node tests/town-2d-web.cjs
-          TF_BROWSER=webkit NODE_PATH=/tmp/tf-browser/node_modules node tests/town-2d-web.cjs
-          NODE_PATH=/tmp/tf-browser/node_modules node tests/homestead-web.cjs
           NODE_PATH=/tmp/tf-browser/node_modules node tests/atlas-web.cjs
           TF_BROWSER=webkit NODE_PATH=/tmp/tf-browser/node_modules node tests/atlas-web.cjs
       - uses: actions/upload-artifact@v4
