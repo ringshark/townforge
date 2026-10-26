@@ -9,7 +9,7 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: townforge-interiors-943016d8
+  group: townforge-interiors-final
   cancel-in-progress: true
 jobs:
   publish:
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ringshark/townforge-source
-          ref: 943016d8a23ba4224d1fd480b5cb7ef2352b464e
+          ref: 96f8e3bd340f0c84170914088ef7c8c1ee58bc8e
           path: source
       - name: Check published source
         id: changed
