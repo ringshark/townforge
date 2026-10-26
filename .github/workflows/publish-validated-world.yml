@@ -22,15 +22,15 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: atlas-validated-site
-          run-id: 40214915609
+          name: interior-validated-site
+          run-id: 40279929387
           github-token: ${{ github.token }}
           path: site
       - name: Verify the tested release
         run: |
-          test "$(cat site/source-version.txt)" = "b320d15dc1b4fe6fa167742b755de4beb4f4e84a"
+          test "$(cat site/source-version.txt)" = "96f8e3bd340f0c84170914088ef7c8c1ee58bc8e"
           cp site/source-version.txt site/validated-source-version.txt
-          echo '4c357d8defa1c6038d54fb0737a2d88f386f87ed' > site/source-version.txt
+          echo 'cb71b767495a94db125cb03f603eccbdcf4a8853' > site/source-version.txt
       - name: Let the repository branch deployment finish first
         env:
           GH_TOKEN: ${{ github.token }}
