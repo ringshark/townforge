@@ -24,14 +24,14 @@ jobs:
         with:
           name: world-layout-validated-site
           repository: ringshark/townforge-source
-          run-id: 40628049538
+          run-id: 40633178895
           github-token: ${{ github.token }}
           path: site
       - name: Verify the tested release
         run: |
-          test "$(cat site/source-version.txt)" = "42707874bb9172e00aeb3dc25fa477a7f13cb934"
+          test "$(cat site/source-version.txt)" = "c4b4655cfa5abb2ff678bbea2146ff37ed94331b"
           cp site/source-version.txt site/validated-source-version.txt
-          echo '42707874bb9172e00aeb3dc25fa477a7f13cb934' > site/source-version.txt
+          echo 'c4b4655cfa5abb2ff678bbea2146ff37ed94331b' > site/source-version.txt
       - name: Let the repository branch deployment finish first
         env:
           GH_TOKEN: ${{ github.token }}
