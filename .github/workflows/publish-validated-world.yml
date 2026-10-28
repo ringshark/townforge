@@ -22,15 +22,16 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: interior-validated-site
-          run-id: 40279929387
+          name: world-layout-validated-site
+          repository: ringshark/townforge-source
+          run-id: 40603951142
           github-token: ${{ github.token }}
           path: site
       - name: Verify the tested release
         run: |
-          test "$(cat site/source-version.txt)" = "96f8e3bd340f0c84170914088ef7c8c1ee58bc8e"
+          test "$(cat site/source-version.txt)" = "7e1e9f3163091bf00a78c9579c6747182867a2fd"
           cp site/source-version.txt site/validated-source-version.txt
-          echo 'cb71b767495a94db125cb03f603eccbdcf4a8853' > site/source-version.txt
+          echo 'f23df086fa98cd137a8d51d203ea03d871328703' > site/source-version.txt
       - name: Let the repository branch deployment finish first
         env:
           GH_TOKEN: ${{ github.token }}
