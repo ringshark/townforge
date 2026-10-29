@@ -1,3 +1,4 @@
+# Ashfall scale and walking-arm release: 8da844baeee6b70e2dd8bdbaf21a919d5a4ff3b8
 # Larger player release: 7fbee87f1dbe61e6eeefb007c24636a2108e8e82
 # Compact interiors and framed-matte release: 13d4b9288f88195eece091a6c20dfb80e2b73a6c
 # Cohesive 2D environment release: 82a1adc23c922bae681d433c32327c1a4f0962cd
@@ -79,6 +80,8 @@ jobs:
           g++ -std=c++17 tests/homestead-life.cpp -o /tmp/tf-homestead-life
           /tmp/tf-homestead-life
           RAYLIB_DIR=/tmp/raylib python tests/avatar-motion.py
+          python -m pip install --quiet Pillow
+          RAYLIB_DIR=/tmp/raylib python tests/equipment-sprites.py
           TF_HOMESTEAD_FIXTURE=/tmp/tf-homestead-fixture.txt RAYLIB_DIR=/tmp/raylib python tests/landscape-menus.py
           RAYLIB_DIR=/tmp/raylib TF_VARIANT=2d bash web/build_web.sh
       - name: Preserve online configuration and the games hub
