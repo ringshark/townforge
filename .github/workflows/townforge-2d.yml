@@ -1,3 +1,4 @@
+# Compact interiors and framed-matte release: 13d4b9288f88195eece091a6c20dfb80e2b73a6c
 # Cohesive 2D environment release: 82a1adc23c922bae681d433c32327c1a4f0962cd
 # Dungeon landscape camera release: ce2e95d781736179ab72c1c8df00705695fcc4b8
 name: Build and publish Town Forge 2D
@@ -72,6 +73,8 @@ jobs:
           make -C /tmp/raylib/src PLATFORM=PLATFORM_WEB -j2
           g++ -std=c++17 -I /tmp/raylib/src tests/town-2d-art.cpp -o /tmp/tf-art-test
           /tmp/tf-art-test
+          g++ -std=c++17 -I /tmp/raylib/src tests/exterior-mattes.cpp -o /tmp/tf-exterior-mattes
+          /tmp/tf-exterior-mattes
           g++ -std=c++17 tests/homestead-life.cpp -o /tmp/tf-homestead-life
           /tmp/tf-homestead-life
           RAYLIB_DIR=/tmp/raylib python tests/avatar-motion.py
